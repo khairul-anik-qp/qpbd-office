@@ -16,3 +16,6 @@ Office Request System.dc.html
 
 # TS incremental build info
 *.tsbuildinfo
+
+secrets/
+*-firebase-adminsdk-*.json
