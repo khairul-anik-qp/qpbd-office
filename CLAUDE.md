@@ -12,15 +12,20 @@ QuestionPro Office Requests — an internal office help-request PWA. Employees r
 pnpm install            # all workspaces
 cp .env.example .env     # fill secrets before running api features that need them
 pnpm db:up               # start PostgreSQL (docker); db:down to stop
+pnpm db:migrate          # apply Prisma migrations
+pnpm db:generate         # regenerate Prisma client after schema changes
 pnpm dev                 # build shared, then run api (:3000) + web (:5173) concurrently
 pnpm build               # build shared → api → web
 pnpm build:shared        # rebuild only @office/shared (do this after editing it)
+pnpm test:shared         # run shared package unit tests (node --import tsx --test)
+pnpm docker:prod         # build + start production stack (Postgres + API + Caddy)
+pnpm dev:kill            # kill any process on ports 3000/5173/5174 (also runs as predev)
 ```
 
 - API health: `GET http://localhost:3000/health`. Web dev server proxies `/api` and `/sse` → API, so the app is single-origin.
 - If port `5432` is taken by a local Postgres, set `POSTGRES_PORT` in `.env` (compose maps `${POSTGRES_PORT:-5432}:5432`).
 - Per-app: `pnpm --filter @office/web <script>`, `pnpm --filter @office/api <script>`.
-- **No test runner is wired yet.** When adding one, document the single-test invocation here.
+- **Shared package tests:** `packages/shared/src/*.test.ts` run via `node --import tsx --test`. Invoke with `pnpm test:shared`.
 
 ## Architecture
 
@@ -40,13 +45,10 @@ Data flow: web → REST + SSE → NestJS → PostgreSQL. Assignment router decid
 - **DB layer uses Prisma** (chosen over TypeORM).
 - **Fonts:** Fira Sans (Latin, per README) with **Noto Sans Bengali** as fallback for Bangla glyphs (Fira has no Bengali subset). Stack lives in `--font-sans`. Both bundled via `@fontsource`. Don't drop the Bengali fallback — the staff UI is Bangla-first.
 
-## Reference docs (local-only, gitignored)
+## Reference docs
 
-Not committed — keep these locally; they are the build's source of truth:
-
-- `plan.md` — implementation plan: phases, API sketch, domain model, assignment logic, env vars, decisions log.
-- `Office Request System.dc.html` — interactive prototype. **Canonical** for `TYPES` constant, exact Bangla copy, forward flow, chime, animations.
-- `README.md` — design handoff (tokens, screen specs §A/B/C/D, motion) + dev quickstart.
+- `README.md` — developer quickstart + architecture diagrams + API reference + env var table + troubleshooting. **Not** a design handoff
+— design tokens/copy/behavior live in the prototype.
 
 When a value is ambiguous, the prototype wins for copy/behavior, README for visual tokens, plan for architecture.
 
