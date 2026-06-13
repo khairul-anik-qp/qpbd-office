@@ -31,16 +31,28 @@ self.addEventListener("push", (event) => {
       body,
       icon: "/icons/icon.svg",
       badge: "/icons/icon.svg",
-      tag: payload.type === "request.reminder" ? "reminder" : payload.requestId,
+      tag:
+        payload.type === "request.reminder"
+          ? "reminder"
+          : payload.type === "signup.pending"
+            ? "signup-pending"
+            : payload.requestId,
       data: payload,
     }),
   );
 });
 
+function notificationUrl(payload: PushPayload | undefined): string {
+  if (!payload) return "/";
+  if (payload.type === "signup.pending") return "/admin";
+  if (payload.type === "request.reminder") return "/staff?tab=new";
+  return "/staff?tab=new";
+}
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const payload = event.notification.data as PushPayload | undefined;
-  const url = payload?.type === "request.reminder" ? "/staff?tab=new" : "/staff?tab=new";
+  const url = notificationUrl(payload);
 
   event.waitUntil(
     self.clients

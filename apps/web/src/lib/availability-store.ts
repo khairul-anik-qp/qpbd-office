@@ -1,12 +1,19 @@
-import type { Availability } from "@office/shared";
+import type { Availability, User } from "@office/shared";
 
-const KEY = "office_staff_availability";
+const LEGACY_KEY = "office_staff_availability";
 
 type Listener = () => void;
 const listeners = new Set<Listener>();
 
-/** In-memory cache mirrored from API + SSE. */
+/** Live session cache — updated from API fetches and SSE. Not persisted. */
 let cache: Record<string, Availability> = {};
+
+// Drop stale persisted overrides from before server became source of truth on fetch.
+try {
+  localStorage.removeItem(LEGACY_KEY);
+} catch {
+  // ignore
+}
 
 export function subscribeAvailability(listener: Listener): () => void {
   listeners.add(listener);
@@ -18,24 +25,26 @@ function notify() {
 }
 
 export function loadAvailabilityOverrides(): Record<string, Availability> {
-  if (Object.keys(cache).length > 0) return cache;
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Record<string, Availability>;
-    cache = parsed && typeof parsed === "object" ? parsed : {};
-    return cache;
-  } catch {
-    return {};
-  }
+  return cache;
 }
 
+/** SSE + optimistic staff self-updates. */
 export function notifyAvailability(staffId: string, status: Availability) {
-  cache = { ...loadAvailabilityOverrides(), [staffId]: status };
-  localStorage.setItem(KEY, JSON.stringify(cache));
+  if (cache[staffId] === status) return;
+  cache = { ...cache, [staffId]: status };
   notify();
 }
 
-export function saveAvailabilityOverride(staffId: string, status: Availability) {
-  notifyAvailability(staffId, status);
+/** API list is source of truth — reconcile cache so auto-reset is visible after refresh. */
+export function applyStaffAvailabilityFromApi(list: User[]): User[] {
+  const next = { ...cache };
+  for (const member of list) {
+    if (member.availability) {
+      next[member.id] = member.availability;
+    }
+  }
+  cache = next;
+  return list.map((member) =>
+    cache[member.id] ? { ...member, availability: cache[member.id] } : member,
+  );
 }

@@ -2,8 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import type { Availability, Request, User } from "@office/shared";
+import { staffFirstName } from "@office/shared";
 import {
-  loadAvailabilityOverrides,
+  applyStaffAvailabilityFromApi,
+  notifyAvailability,
   subscribeAvailability,
 } from "@/lib/availability-store";
 import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
@@ -23,10 +25,7 @@ const NOTIF_MS = 7000;
 const FORWARD_TOAST_MS = 3800;
 
 function mergeAvailability(list: User[]): User[] {
-  const overrides = loadAvailabilityOverrides();
-  return list.map((s) =>
-    overrides[s.id] ? { ...s, availability: overrides[s.id] } : s,
-  );
+  return applyStaffAvailabilityFromApi(list);
 }
 
 export function useStaffRequests() {
@@ -54,8 +53,7 @@ export function useStaffRequests() {
 
   const myAvailability = useMemo((): Availability => {
     const me = staff.find((s) => s.id === staffId);
-    const override = loadAvailabilityOverrides()[staffId];
-    return (override ?? me?.availability ?? "available") as Availability;
+    return (me?.availability ?? "available") as Availability;
   }, [staff, staffId]);
 
   const showNotification = useCallback((req: Request) => {
@@ -129,9 +127,16 @@ export function useStaffRequests() {
   const setAvailability = useCallback(
     (status: Availability) => {
       if (!staffId) return;
-      void api.setAvailability(status).catch(() => {
-        toast.error("Could not update availability");
-      });
+      void api
+        .setAvailability(status)
+        .then((updated) => {
+          if (updated.availability) {
+            notifyAvailability(updated.id, updated.availability);
+          }
+        })
+        .catch(() => {
+          toast.error("Could not update availability");
+        });
     },
     [staffId],
   );
@@ -174,8 +179,8 @@ export function useStaffRequests() {
           setActiveNotif((n) => (n?.id === id ? null : n));
           if (target) {
             const toastMsg: ForwardToast = {
-              bn: `${target.nameBn ?? target.nameEn}-কে পাঠানো হয়েছে`,
-              en: `Forwarded to ${target.nameEn}`,
+              bn: `${staffFirstName(target.nameEn)}-কে পাঠানো হয়েছে`,
+              en: `Forwarded to ${staffFirstName(target.nameEn)}`,
             };
             setForwardToast(toastMsg);
             if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);

@@ -1,6 +1,4 @@
 import {
-  BadRequestException,
-  Body,
   Controller,
   Get,
   NotFoundException,
@@ -12,7 +10,6 @@ import type { User } from "@office/shared";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
-import { ApproveStaffDto } from "../auth/dto/auth.dto";
 import { EmailService } from "../email/email.service";
 import { SseService } from "../sse/sse.service";
 import { UsersService } from "../users/users.service";
@@ -33,24 +30,16 @@ export class AdminController {
   }
 
   @Post("approve/:userId")
-  async approve(
-    @Param("userId") userId: string,
-    @Body() body: ApproveStaffDto,
-  ): Promise<User> {
+  async approve(@Param("userId") userId: string): Promise<User> {
     const user = await this.users.findById(userId);
     if (!user || user.status !== "pending") {
       throw new NotFoundException("Pending user not found");
     }
 
-    let approved: User;
-    if (user.role === "staff") {
-      if (!body.nameBn?.trim()) {
-        throw new BadRequestException("Bangla name is required for staff");
-      }
-      approved = await this.users.approveStaff(userId, body.nameBn.trim());
-    } else {
-      approved = await this.users.approveEmployee(userId);
-    }
+    const approved =
+      user.role === "staff"
+        ? await this.users.approveStaff(userId)
+        : await this.users.approveEmployee(userId);
 
     this.sse.emit("user.approved", approved);
     void this.email.sendApprovalNotice(approved.email, approved.nameEn);

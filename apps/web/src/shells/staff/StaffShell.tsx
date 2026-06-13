@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/context/AuthContext";
 import { useNow } from "@/shells/employee/hooks/useNow";
 import { StaffHeader } from "./components/StaffHeader";
 import { AvailabilityControl } from "./components/AvailabilityControl";
@@ -9,13 +7,9 @@ import { ForwardBanner } from "./components/ForwardBanner";
 import { EmptyTabState } from "./components/EmptyTabState";
 import { PushHeadsUp } from "./components/PushHeadsUp";
 import { useStaffRequests } from "./hooks/useStaffRequests";
-import { loadAvailabilityOverrides } from "@/lib/availability-store";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function StaffShell() {
-  const { signOut, user: authUser } = useAuth();
   const now = useNow();
-  usePushNotifications(authUser?.role === "staff" && authUser?.status === "active");
   const {
     user,
     staffById,
@@ -40,15 +34,14 @@ export default function StaffShell() {
 
   if (!user) return null;
 
-  const availabilityFor = (id: string) =>
-    loadAvailabilityOverrides()[id] ?? staffById.get(id)?.availability ?? "away";
+  const availabilityFor = (id: string) => staffById.get(id)?.availability ?? "away";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <div
         className={`relative mx-auto flex w-full max-w-md flex-1 flex-col bg-background ${shake ? "animate-shake" : ""}`}
       >
-        <StaffHeader user={user} newCount={counts.new} />
+        <StaffHeader user={user} />
         <AvailabilityControl value={myAvailability} onChange={setAvailability} />
         <StaffTabs active={phoneTab} counts={counts} onChange={changeTab} />
 
@@ -86,12 +79,6 @@ export default function StaffShell() {
           />
         ) : null}
       </div>
-
-      <footer className="mx-auto w-full max-w-md border-t border-divider bg-card px-4 py-3">
-        <Button className="w-full" variant="outline" onClick={signOut}>
-          সাইন আউট · Sign out
-        </Button>
-      </footer>
     </div>
   );
 }

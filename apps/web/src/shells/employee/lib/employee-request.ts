@@ -1,5 +1,5 @@
 import type { Availability, Request, RequestStatus, RequestType, User, Urgency } from "@office/shared";
-import { LOCATIONS, TYPES } from "@office/shared";
+import { LOCATIONS, TYPES, staffFirstName } from "@office/shared";
 
 export type AllFilter = "all" | RequestStatus;
 
@@ -156,17 +156,18 @@ export function assigneeLine(
   staffById: Map<string, User>,
 ): { icon: "person" | "handyman"; text: string } {
   if (request.status === "new") {
-    if (request.assignee) {
-      const name = staffById.get(request.assignee)?.nameEn ?? "—";
-      return { icon: "person", text: `For ${name}` };
-    }
-    return { icon: "person", text: "For anyone available" };
+    const name =
+      request.assigneeName ??
+      (request.assignee
+        ? staffFirstName(staffById.get(request.assignee)?.nameEn ?? "")
+        : null);
+    return { icon: "person", text: name ? `For ${name}` : "For office team" };
   }
   const handler = request.acceptedBy
-    ? (staffById.get(request.acceptedBy)?.nameEn ?? "—")
+    ? staffFirstName(staffById.get(request.acceptedBy)?.nameEn ?? "")
     : "—";
   if (request.forwardedBy) {
-    const forwarded = staffById.get(request.forwardedBy)?.nameEn;
+    const forwarded = staffFirstName(staffById.get(request.forwardedBy)?.nameEn ?? "");
     if (forwarded && forwarded !== handler) {
       return { icon: "handyman", text: `Handled by ${handler} · Forwarded from ${forwarded}` };
     }

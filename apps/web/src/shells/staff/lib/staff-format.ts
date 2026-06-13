@@ -1,5 +1,5 @@
 import type { Availability, Request, RequestStatus, User } from "@office/shared";
-import { LOCATIONS, isVisibleToStaff as sharedIsVisible } from "@office/shared";
+import { LOCATIONS, isVisibleToStaff as sharedIsVisible, staffFirstName } from "@office/shared";
 
 export type PhoneTab = RequestStatus;
 
@@ -7,7 +7,7 @@ export const AVAILABILITY_LABELS: Record<
   Availability,
   { bn: string; en: string; soft: string; color: string }
 > = {
-  available: { bn: "উপলব্ধ", en: "Available", soft: "#DFF2BF", color: "#227700" },
+  available: { bn: "উপস্থিত", en: "Available", soft: "#DFF2BF", color: "#227700" },
   busy: { bn: "ব্যস্ত", en: "Busy", soft: "#FEEFB3", color: "#9F6000" },
   away: { bn: "অনুপস্থিত", en: "Away", soft: "#EEEEEE", color: "#9B9B9B" },
 };
@@ -36,12 +36,10 @@ export function locationBn(locId: string): string {
   return LOCATIONS.find((l) => l.id === locId)?.bn ?? locId;
 }
 
-export function staffBanglaInitial(user: User): string {
-  const bn = user.nameBn?.trim();
-  if (bn) return bn[0]!;
-  const en = user.nameEn.trim();
-  if (!en) return "?";
-  return en[0]!.toUpperCase();
+export function staffAvatarInitial(user: User): string {
+  const first = staffFirstName(user.nameEn);
+  if (first === "—") return "?";
+  return first[0]!.toUpperCase();
 }
 
 export function staffStatusPill(
@@ -86,6 +84,7 @@ export function sortForTab(requests: Request[], tab: PhoneTab): Request[] {
 
 export function shouldNotifyStaff(request: Request, staffId: string): boolean {
   if (request.status !== "new") return false;
+  if (request.forwardedBy === staffId) return false;
   return request.assignee === staffId || request.assignee === null;
 }
 

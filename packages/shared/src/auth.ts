@@ -19,11 +19,6 @@ export interface RegisterDto {
   role: "employee" | "staff";
 }
 
-/** POST /admin/approve/:userId — required for staff approvals. */
-export interface ApproveStaffDto {
-  nameBn: string;
-}
-
 export interface AuthResponse {
   token: string;
   user: User;

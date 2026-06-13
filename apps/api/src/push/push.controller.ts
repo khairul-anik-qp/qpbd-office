@@ -9,7 +9,7 @@ import { PushService } from "./push.service";
 
 @Controller("push")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("staff")
+@Roles("staff", "admin")
 export class PushController {
   constructor(private readonly push: PushService) {}
 

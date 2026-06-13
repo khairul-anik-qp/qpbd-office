@@ -4,12 +4,13 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
-import type { CreateRequestResponse, Request, User } from "@office/shared";
+import type { CreateRequestResponse, ListRequestsPage, Request, User } from "@office/shared";
 import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { CurrentUser } from "../auth/current-user.decorator";
-import { CreateRequestDto, ForwardRequestDto } from "./dto/requests.dto";
+import { CreateRequestDto, ForwardRequestDto, ListRequestsQueryDto } from "./dto/requests.dto";
 import { RequestsService } from "./requests.service";
 
 @Controller("requests")
@@ -18,8 +19,11 @@ export class RequestsController {
   constructor(private readonly requests: RequestsService) {}
 
   @Get()
-  list(@CurrentUser() user: User): Promise<Request[]> {
-    return this.requests.listForUser(user);
+  list(
+    @CurrentUser() user: User,
+    @Query() query: ListRequestsQueryDto,
+  ): Promise<Request[] | ListRequestsPage> {
+    return this.requests.listForUser(user, query);
   }
 
   @Post()

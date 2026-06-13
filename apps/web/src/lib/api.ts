@@ -5,10 +5,13 @@ import type {
   CreateRequestResponse,
   ForwardRequestDto,
   GoogleAuthResult,
+  ListRequestsPage,
+  ListRequestsParams,
   RegisterDto,
   Request,
   User,
 } from "@office/shared";
+import { REQUESTS_PAGE_SIZE } from "@office/shared";
 import { isNeedsRegistration } from "@office/shared";
 
 const TOKEN_KEY = "office_token";
@@ -38,7 +41,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!headers.has("Content-Type") && init.body) {
     headers.set("Content-Type", "application/json");
   }
-  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const isPublicAuth = path === "/auth/google" || path === "/auth/register";
+  if (token && !isPublicAuth) headers.set("Authorization", `Bearer ${token}`);
 
   const res = await fetch(`/api${path}`, { ...init, headers });
   if (!res.ok) {
@@ -79,10 +83,9 @@ export const api = {
     return request("/admin/pending");
   },
 
-  approve(userId: string, nameBn?: string): Promise<User> {
+  approve(userId: string): Promise<User> {
     return request(`/admin/approve/${userId}`, {
       method: "POST",
-      body: JSON.stringify(nameBn ? { nameBn } : undefined),
     });
   },
 
@@ -98,6 +101,14 @@ export const api = {
 
   listRequests(): Promise<Request[]> {
     return request("/requests");
+  },
+
+  listRequestPage(params: ListRequestsParams = {}): Promise<ListRequestsPage> {
+    const qs = new URLSearchParams();
+    qs.set("limit", String(params.limit ?? REQUESTS_PAGE_SIZE));
+    if (params.cursor) qs.set("cursor", params.cursor);
+    if (params.status) qs.set("status", params.status);
+    return request(`/requests?${qs}`);
   },
 
   createRequest(dto: CreateRequestDto): Promise<CreateRequestResponse> {

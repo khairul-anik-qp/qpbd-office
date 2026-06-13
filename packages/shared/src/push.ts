@@ -1,5 +1,9 @@
 /** Plan §13 — FCM / web-push notification types. */
-export type PushType = "request.new" | "request.forwarded" | "request.reminder";
+export type PushType =
+  | "request.new"
+  | "request.forwarded"
+  | "request.reminder"
+  | "signup.pending";
 
 export interface PushPayload {
   type: PushType;

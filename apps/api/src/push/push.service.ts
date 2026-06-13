@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { PushPayload, Request } from "@office/shared";
+import type { PushPayload, Request, User } from "@office/shared";
 import { TYPES } from "@office/shared";
 import * as webpush from "web-push";
 import { PrismaService } from "../prisma/prisma.service";
@@ -125,6 +125,17 @@ export class PushService implements OnModuleInit {
       titleEn: "New requests waiting",
       bodyBn: `${count}টি অনুরোধ`,
       bodyEn: `${count} request(s) in your New list`,
+    });
+  }
+
+  async sendSignupPending(adminIds: string[], user: User): Promise<void> {
+    const roleEn = user.role === "staff" ? "Staff" : "Employee";
+    await this.sendToStaff(adminIds, {
+      type: "signup.pending",
+      titleBn: "নতুন সাইন-আপ",
+      titleEn: "New sign-up",
+      bodyBn: `${user.nameEn} — ${roleEn}`,
+      bodyEn: `${user.nameEn} — ${roleEn}`,
     });
   }
 }

@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import type { RequestType } from "@office/shared";
-import { LOCATIONS } from "@office/shared";
+import { LOCATIONS, staffFirstName } from "@office/shared";
 import { api } from "@/lib/api";
+import { mergeRequest } from "@/lib/request-sync";
 import { useAuth } from "@/context/AuthContext";
 import {
   type CreateFormState,
@@ -45,14 +46,18 @@ export function useEmployeeRequests() {
         assignee: createForm.assignee,
       });
 
+      mergeRequest(request);
       closeCreate();
 
-      const assigneeName = request.assignee
-        ? staffById.get(request.assignee)?.nameEn
-        : null;
-      const message = assigneeName
-        ? `Request sent — ${assigneeName} has been notified`
-        : "Request sent — the office team has been notified";
+      const assigneeName =
+        request.assigneeName ??
+        (request.assignee
+          ? staffFirstName(staffById.get(request.assignee)?.nameEn ?? "")
+          : null);
+      const message =
+        assigneeName && assigneeName !== "—"
+          ? `Request sent — ${assigneeName} has been notified`
+          : "Request sent — the office team has been notified";
 
       setSuccessToast(message);
       setTimeout(() => setSuccessToast(null), TOAST_MS);

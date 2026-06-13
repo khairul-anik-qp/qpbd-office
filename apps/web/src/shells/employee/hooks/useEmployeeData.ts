@@ -4,7 +4,7 @@ import type { Request, User } from "@office/shared";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import {
-  loadAvailabilityOverrides,
+  applyStaffAvailabilityFromApi,
   subscribeAvailability,
 } from "@/lib/availability-store";
 import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
@@ -46,10 +46,7 @@ export function useEmployeeData() {
   }, []);
 
   const mergeAvailability = useCallback((list: User[]) => {
-    const overrides = loadAvailabilityOverrides();
-    return list.map((s) =>
-      overrides[s.id] ? { ...s, availability: overrides[s.id] } : s,
-    );
+    return applyStaffAvailabilityFromApi(list);
   }, []);
 
   const loadStaff = useCallback(

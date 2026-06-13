@@ -1,67 +1,60 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import type { User } from "@office/shared";
 import { Icon } from "@/components/Icon";
+import type { IconName } from "@/icons/material-symbols";
 import { AppHeader } from "@/components/AppHeader";
-import { Badge } from "@/components/ui/badge";
+import { UserAvatar } from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { usePendingSignupList } from "@/hooks/usePendingSignupList";
 import { api } from "@/lib/api";
-import { subscribePendingQueue } from "@/lib/pending-queue-sync";
-import { ApproveStaffDialog } from "./ApproveStaffDialog";
+import { cn } from "@/lib/utils";
 
-function sortPending(users: User[]): User[] {
-  return [...users].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  );
+const SIGNUP_ROLE = {
+  staff: {
+    label: "Staff",
+    icon: "groups" satisfies IconName,
+    accent: "bg-info",
+    chip: "bg-info-soft/70",
+    iconClass: "text-info",
+  },
+  employee: {
+    label: "Employee",
+    icon: "person" satisfies IconName,
+    accent: "bg-electric",
+    chip: "bg-electric/10",
+    iconClass: "text-electric",
+  },
+} as const;
+
+function signupRole(role: User["role"]) {
+  return role === "staff" ? SIGNUP_ROLE.staff : SIGNUP_ROLE.employee;
 }
 
-function upsertPending(users: User[], user: User): User[] {
-  const idx = users.findIndex((entry) => entry.id === user.id);
-  const next =
-    idx >= 0 ? users.map((entry) => (entry.id === user.id ? user : entry)) : [...users, user];
-  return sortPending(next);
+function formatSignupRequestDate(ts: string): string {
+  const d = new Date(ts);
+  const date = d.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return `${date}, ${time}`;
 }
 
 export function PendingQueue() {
-  const [pending, setPending] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [staffTarget, setStaffTarget] = useState<User | null>(null);
+  const { pending, loading } = usePendingSignupList();
   const [acting, setActing] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setPending(await api.listPending());
-    } catch {
-      toast.error("Could not load pending signups.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  useEffect(() => {
-    return subscribePendingQueue({
-      onRegistered: (user) => {
-        setPending((current) => upsertPending(current, user));
-        setLoading(false);
-      },
-      onRemoved: (userId) => {
-        setPending((current) => current.filter((user) => user.id !== userId));
-      },
-    });
-  }, []);
-
-  async function approveEmployee(user: User) {
+  async function approveUser(user: User) {
     setActing(user.id);
     try {
       await api.approve(user.id);
       toast.success(`${user.nameEn} approved`);
-      await load();
     } catch {
       toast.error("Approval failed");
     } finally {
@@ -74,7 +67,6 @@ export function PendingQueue() {
     try {
       await api.reject(user.id);
       toast.success(`${user.nameEn} rejected`);
-      await load();
     } catch {
       toast.error("Rejection failed");
     } finally {
@@ -100,67 +92,79 @@ export function PendingQueue() {
           </Card>
         ) : (
           <ul className="grid gap-3">
-            {pending.map((user) => (
+            {pending.map((user) => {
+              const role = signupRole(user.role);
+              return (
               <li key={user.id}>
-                <Card>
-                  <CardContent className="flex flex-wrap items-center gap-4 p-4">
-                    {user.photoUrl ? (
-                      <img
-                        src={user.photoUrl}
-                        alt=""
-                        className="size-12 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex size-12 items-center justify-center rounded-full bg-surface text-lead">
-                        <Icon name="person" className="size-6" />
+                <Card className="overflow-hidden">
+                  <CardContent className="flex p-0">
+                    <div
+                      className={cn("w-1 shrink-0", role.accent)}
+                      aria-hidden
+                    />
+                    <div className="flex min-w-0 flex-1 flex-col p-4">
+                      <div className="flex items-start gap-3">
+                        <UserAvatar
+                          photoUrl={user.photoUrl}
+                          name={user.nameEn}
+                          className="size-12 rounded-xl shadow-pop ring-2 ring-border/60"
+                          fallbackClassName="bg-surface text-lead"
+                          fallback={<Icon name="person" className="size-6" aria-hidden />}
+                        />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-base font-medium leading-6 text-dark-blue">
+                            {user.nameEn}
+                          </p>
+                          <p className="truncate text-sm leading-5 text-lead">{user.email}</p>
+                          <p className="mt-1 text-xs leading-4 text-muted-gray">
+                            Requested {formatSignupRequestDate(user.createdAt)}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{user.nameEn}</p>
-                      <p className="truncate text-sm text-lead">{user.email}</p>
-                    </div>
-                    <Badge variant={user.role === "staff" ? "default" : "muted"}>
-                      {user.role === "staff" ? "Staff" : "Employee"}
-                    </Badge>
-                    <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-                      <Button
-                        size="sm"
-                        disabled={acting === user.id}
-                        onClick={() =>
-                          user.role === "staff"
-                            ? setStaffTarget(user)
-                            : void approveEmployee(user)
-                        }
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={acting === user.id}
-                        onClick={() => void rejectUser(user)}
-                      >
-                        Reject
-                      </Button>
+
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-4">
+                        <div
+                          className={cn(
+                            "inline-flex items-center gap-2 rounded-lg px-2.5 py-1.5",
+                            role.chip,
+                          )}
+                        >
+                          <Icon
+                            name={role.icon}
+                            className={cn("size-5 shrink-0", role.iconClass)}
+                            aria-hidden
+                          />
+                          <span className="text-sm font-medium text-dark-blue">{role.label}</span>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="min-w-24"
+                            disabled={acting === user.id}
+                            onClick={() => void approveUser(user)}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="min-w-24"
+                            disabled={acting === user.id}
+                            onClick={() => void rejectUser(user)}
+                          >
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </main>
-
-      <ApproveStaffDialog
-        user={staffTarget}
-        open={!!staffTarget}
-        onOpenChange={(open) => !open && setStaffTarget(null)}
-        onApproved={async () => {
-          setStaffTarget(null);
-          toast.success("Staff member approved");
-          await load();
-        }}
-      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { Request, User } from "@office/shared";
-import { TYPES } from "@office/shared";
+import { TYPES, staffFirstName } from "@office/shared";
 import { Icon, TypeIcon } from "@/components/Icon";
 import {
   agoBn,
@@ -80,8 +80,9 @@ export function StaffRequestCard({
   const pill = staffStatusPill(request.status, request.urg);
   const assignee = request.assignee ? staffById.get(request.assignee) : null;
   const forwardedBy = request.forwardedBy ? staffById.get(request.forwardedBy) : null;
-  const isClaim = request.assignee === null;
   const canActOnProgress = request.acceptedBy === currentStaffId;
+  const forwardTargets = otherStaff.filter((s) => s.id !== request.forwardedBy);
+  const canForward = forwardTargets.length > 0;
 
   return (
     <article className="relative overflow-hidden rounded-helper border border-border bg-card shadow-pop">
@@ -110,18 +111,6 @@ export function StaffRequestCard({
               </span>
             </div>
             <p className="mt-0.5 text-sm leading-[18px] text-lead">{ty.en}</p>
-            <span
-              className="mt-1.5 inline-flex items-center rounded px-2.5 py-[3px] text-xs font-medium leading-4"
-              style={
-                assignee
-                  ? { backgroundColor: "#E1F0FB", color: "#1B87E6" }
-                  : { backgroundColor: "#F5F5F5", color: "#545E6B" }
-              }
-            >
-              {assignee
-                ? `→ ${assignee.nameBn ?? assignee.nameEn}`
-                : "যে কেউ · Anyone"}
-            </span>
           </div>
         </div>
 
@@ -139,8 +128,8 @@ export function StaffRequestCard({
           {forwardedBy ? (
             <li className="flex items-start gap-2 text-electric">
               <Icon name="forward" className="mt-0.5 size-4 shrink-0" aria-hidden />
-              {forwardedBy.nameBn ?? forwardedBy.nameEn} থেকে · Forwarded by{" "}
-              {forwardedBy.nameEn}
+              {staffFirstName(forwardedBy.nameEn)} থেকে · Forwarded by{" "}
+              {staffFirstName(forwardedBy.nameEn)}
             </li>
           ) : null}
           <li className="flex items-start gap-2">
@@ -153,24 +142,26 @@ export function StaffRequestCard({
           <div className="mt-3.5 flex gap-2">
             <TwoLineButton
               icon="check_circle"
-              labelBn={isClaim ? "গ্রহণ" : "গ্রহণ করুন"}
-              labelEn={isClaim ? "Claim & accept" : "Accept"}
+              labelBn="গ্রহণ করুন"
+              labelEn="Accept"
               variant="primary"
               onClick={onAccept}
             />
-            <TwoLineButton
-              icon="forward"
-              labelBn="ফরওয়ার্ড"
-              labelEn="Forward"
-              variant="outline"
-              onClick={onStartForward}
-            />
+            {canForward ? (
+              <TwoLineButton
+                icon="forward"
+                labelBn="ফরওয়ার্ড"
+                labelEn="Forward"
+                variant="outline"
+                onClick={onStartForward}
+              />
+            ) : null}
           </div>
         ) : null}
 
         {request.status === "new" && isForwarding ? (
           <ForwardPicker
-            targets={otherStaff}
+            targets={forwardTargets}
             availabilityFor={(id) => availabilityFor(id) ?? "away"}
             onSelect={onForward}
             onCancel={onCancelForward}

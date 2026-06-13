@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import type {
   AvailabilityChangedPayload,
   Request,
@@ -9,7 +10,7 @@ import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
 import { getStoredToken } from "@/lib/api";
 import { setSseConnectionStatus } from "@/lib/sse-connection-store";
 import { mergePendingUser, removePendingUser } from "@/lib/pending-queue-sync";
-import { mergeRequest, setAvailabilityFromSse } from "@/lib/request-sync";
+import { mergeRequest, removeRequest, setAvailabilityFromSse } from "@/lib/request-sync";
 
 const SSE_TYPES: SseEventType[] = [
   "request.created",
@@ -33,12 +34,19 @@ function handleSseEvent(user: User, type: SseEventType, raw: string) {
     case "request.created":
     case "request.updated": {
       const request = JSON.parse(raw) as Request;
-      if (shouldTrackRequest(user, request)) mergeRequest(request);
+      if (shouldTrackRequest(user, request)) {
+        mergeRequest(request);
+      } else if (type === "request.updated") {
+        removeRequest(request.id);
+      }
       break;
     }
     case "availability.changed": {
-      const { staffId, status } = JSON.parse(raw) as AvailabilityChangedPayload;
-      setAvailabilityFromSse(staffId, status);
+      const payload = JSON.parse(raw) as AvailabilityChangedPayload;
+      setAvailabilityFromSse(payload.staffId, payload.status);
+      if (payload.auto && payload.staffId === user.id) {
+        toast.info("আবার উপস্থিত · You're available again", { duration: 5000 });
+      }
       break;
     }
     case "user.registered": {

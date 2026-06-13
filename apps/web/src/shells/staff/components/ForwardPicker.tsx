@@ -1,6 +1,7 @@
 import type { Availability, User } from "@office/shared";
+import { staffFirstName } from "@office/shared";
 import { Icon } from "@/components/Icon";
-import { AVAILABILITY_LABELS, staffBanglaInitial } from "../lib/staff-format";
+import { AVAILABILITY_LABELS, staffAvatarInitial } from "../lib/staff-format";
 
 interface ForwardPickerProps {
   targets: User[];
@@ -48,11 +49,11 @@ export function ForwardPicker({ targets, availabilityFor, onSelect, onCancel }: 
                   style={{ backgroundColor: color }}
                   aria-hidden
                 >
-                  {staffBanglaInitial(member)}
+                  {staffAvatarInitial(member)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-base font-medium leading-[19px] text-ink">
-                    {member.nameBn ?? member.nameEn}
+                    {staffFirstName(member.nameEn)}
                   </p>
                   <p className="text-xs leading-4 text-muted-gray">Office helper</p>
                 </div>

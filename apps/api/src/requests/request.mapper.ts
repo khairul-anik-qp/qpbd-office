@@ -1,7 +1,10 @@
-import type { Request as PrismaRequest } from "@prisma/client";
+import type { Request as PrismaRequest, User as PrismaUser } from "@prisma/client";
 import type { Request } from "@office/shared";
+import { staffFirstName } from "@office/shared";
 
-export function toRequest(record: PrismaRequest): Request {
+type RequestRecord = PrismaRequest & { assignee?: PrismaUser | null };
+
+export function toRequest(record: RequestRecord): Request {
   return {
     id: record.id,
     type: record.type,
@@ -11,6 +14,9 @@ export function toRequest(record: PrismaRequest): Request {
     urg: record.urg,
     loc: record.loc,
     assignee: record.assigneeId,
+    assigneeName: record.assignee?.nameEn
+      ? staffFirstName(record.assignee.nameEn)
+      : null,
     status: record.status,
     forwardedBy: record.forwardedById,
     acceptedBy: record.acceptedById,

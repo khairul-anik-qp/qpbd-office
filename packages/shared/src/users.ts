@@ -16,6 +16,13 @@ export function hasAnyRole(
   return false;
 }
 
+/** First token of English display name — used for staff labels across the app. */
+export function staffFirstName(nameEn: string): string {
+  const trimmed = nameEn.trim();
+  if (!trimmed) return "—";
+  return trimmed.split(/\s+/)[0]!;
+}
+
 /** Pick a staff brand color, preferring colors not yet assigned. */
 export function pickStaffBrandColor(usedColors: readonly string[]): string {
   const used = new Set(usedColors);

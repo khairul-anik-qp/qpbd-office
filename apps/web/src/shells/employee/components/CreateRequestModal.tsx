@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 import type { User } from "@office/shared";
-import { LOCATIONS, TYPES } from "@office/shared";
+import { LOCATIONS, TYPES, staffFirstName } from "@office/shared";
 import { Icon, TypeIcon } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,7 +100,7 @@ export function CreateRequestModal({
                     type="button"
                     onClick={() => {
                       if (avail !== "available") {
-                        toast.warning(`${member.nameEn} is ${av.en.toLowerCase()} right now.`);
+                        toast.warning(`${staffFirstName(member.nameEn)} is ${av.en.toLowerCase()} right now.`);
                       }
                       onChange({ assignee: member.id });
                     }}
@@ -118,7 +118,7 @@ export function CreateRequestModal({
                       {staffInitial(member.nameEn)}
                     </span>
                     <span className="flex flex-col items-start gap-0.5">
-                      <span>{member.nameEn}</span>
+                      <span>{staffFirstName(member.nameEn)}</span>
                       <span
                         className="inline-flex items-center gap-1 text-[11px] leading-[13px]"
                         style={{ color: av.color }}

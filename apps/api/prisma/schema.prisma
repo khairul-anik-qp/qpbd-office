@@ -55,8 +55,9 @@ model User {
   role           UserRole
   status         UserStatus    @default(pending)
   brandColor     String?
-  availability   Availability?
-  lastAcceptedAt DateTime?
+  availability          Availability?
+  availabilityChangedAt DateTime?
+  lastAcceptedAt        DateTime?
   createdAt      DateTime      @default(now())
   approvedAt     DateTime?
 

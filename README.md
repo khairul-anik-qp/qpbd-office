@@ -255,6 +255,7 @@ Copy `.env.example` to `.env`. Key groups:
 | Database | `DATABASE_URL`, `POSTGRES_*`, `POSTGRES_PORT` | Dev defaults match `docker-compose.yml` |
 | Push | `VAPID_*`, `FCM_PROJECT_ID`, `GOOGLE_APPLICATION_CREDENTIALS`, `VITE_VAPID_PUBLIC_KEY` | Optional locally; needed for real push |
 | Reminders | `STAFF_REMINDER_INTERVAL_MINUTES`, `STAFF_REMINDER_ENABLED` | Cron nudges for stale New-tab items |
+| Availability | `STAFF_BUSY_AUTO_RESET_MINUTES`, `STAFF_BUSY_AUTO_RESET_ENABLED` | Auto-reset forgotten `busy` status (default 20 min) |
 | App | `APP_URL`, `APP_DOMAIN`, `API_PORT`, `VITE_GOOGLE_CLIENT_ID` | `APP_URL` must be HTTPS in production |
 | Email | `RESEND_API_KEY`, `RESEND_FROM` | Optional approval notification |
 

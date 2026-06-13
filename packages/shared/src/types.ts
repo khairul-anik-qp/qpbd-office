@@ -41,6 +41,8 @@ export interface Request {
   loc: string;
   /** staff id, or null = "anyone available" */
   assignee: string | null;
+  /** assignee first name — denormalized for employee UI */
+  assigneeName?: string | null;
   status: RequestStatus;
   /** staff id who forwarded */
   forwardedBy?: string | null;

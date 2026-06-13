@@ -1,4 +1,4 @@
-import { IsIn, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsIn, IsNotEmpty, IsString } from "class-validator";
 
 export class GoogleAuthDto {
   @IsString()
@@ -13,10 +13,4 @@ export class RegisterDto {
 
   @IsIn(["employee", "staff"])
   role!: "employee" | "staff";
-}
-
-export class ApproveStaffDto {
-  @IsString()
-  @IsOptional()
-  nameBn?: string;
 }

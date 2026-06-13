@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { RequestStatus, UserRole } from "@prisma/client";
-import type { CreateRequestResponse, Request, User } from "@office/shared";
+import { RequestStatus, type Prisma } from "@prisma/client";
+import type { CreateRequestResponse, ListRequestsPage, Request, User } from "@office/shared";
 import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
 import { AssignmentService } from "../assignment/assignment.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -13,7 +13,10 @@ import { PushService } from "../push/push.service";
 import { SseService } from "../sse/sse.service";
 import { UsersService } from "../users/users.service";
 import { toRequest } from "./request.mapper";
-import type { CreateRequestDto } from "./dto/requests.dto";
+import type { CreateRequestDto, ListRequestsQueryDto } from "./dto/requests.dto";
+import { decodeRequestCursor, encodeRequestCursor } from "./request-cursor";
+
+const REQUEST_INCLUDE = { assignee: true } as const;
 
 @Injectable()
 export class RequestsService {
@@ -25,27 +28,109 @@ export class RequestsService {
     private readonly push: PushService,
   ) {}
 
-  async listForUser(user: User): Promise<Request[]> {
-    if (isEmployeeRole(user.role)) {
-      const records = await this.prisma.request.findMany({
-        where: { requesterId: user.id },
-        orderBy: { createdAt: "desc" },
-      });
-      return records.map(toRequest);
+  async listForUser(
+    user: User,
+    query?: ListRequestsQueryDto,
+  ): Promise<Request[] | ListRequestsPage> {
+    if (!query?.limit) {
+      return this.listAllForUser(user);
     }
+    return this.listPageForUser(user, query);
+  }
 
-    // staff — server-side visibility (plan §6)
+  private async listAllForUser(user: User): Promise<Request[]> {
+    const where = this.buildVisibilityWhere(user);
     const records = await this.prisma.request.findMany({
-      where: {
-        OR: [
-          { status: "new", OR: [{ assigneeId: user.id }, { assigneeId: null }] },
-          { status: "progress", acceptedById: user.id },
-          { status: "done", doneById: user.id },
-        ],
-      },
+      where,
       orderBy: { createdAt: "desc" },
+      include: REQUEST_INCLUDE,
     });
     return records.map(toRequest);
+  }
+
+  private async listPageForUser(
+    user: User,
+    query: ListRequestsQueryDto,
+  ): Promise<ListRequestsPage> {
+    const limit = query.limit!;
+    const baseWhere = this.buildVisibilityWhere(user, query.status);
+    const cursorFilter = this.buildCursorFilter(query.cursor);
+    const where: Prisma.RequestWhereInput = {
+      AND: [baseWhere, ...(cursorFilter ? [cursorFilter] : [])],
+    };
+
+    const [total, records] = await Promise.all([
+      this.prisma.request.count({ where: baseWhere }),
+      this.prisma.request.findMany({
+        where,
+        orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+        take: limit + 1,
+        include: REQUEST_INCLUDE,
+      }),
+    ]);
+
+    const hasMore = records.length > limit;
+    const page = hasMore ? records.slice(0, limit) : records;
+    const last = page.at(-1);
+
+    return {
+      items: page.map(toRequest),
+      nextCursor: hasMore && last ? encodeRequestCursor(last) : null,
+      total,
+    };
+  }
+
+  private buildVisibilityWhere(
+    user: User,
+    status?: ListRequestsQueryDto["status"],
+  ): Prisma.RequestWhereInput {
+    if (isEmployeeRole(user.role)) {
+      return {
+        requesterId: user.id,
+        ...(status ? { status } : {}),
+      };
+    }
+
+    if (status === "new") {
+      return {
+        status: "new",
+        AND: [
+          { OR: [{ forwardedById: null }, { forwardedById: { not: user.id } }] },
+          { OR: [{ assigneeId: user.id }, { assigneeId: null }] },
+        ],
+      };
+    }
+    if (status === "progress") {
+      return { status: "progress", acceptedById: user.id };
+    }
+    if (status === "done") {
+      return { status: "done", doneById: user.id };
+    }
+
+    return {
+      OR: [
+        {
+          status: "new",
+          AND: [
+            { OR: [{ forwardedById: null }, { forwardedById: { not: user.id } }] },
+            { OR: [{ assigneeId: user.id }, { assigneeId: null }] },
+          ],
+        },
+        { status: "progress", acceptedById: user.id },
+        { status: "done", doneById: user.id },
+      ],
+    };
+  }
+
+  private buildCursorFilter(cursor?: string): Prisma.RequestWhereInput | null {
+    if (!cursor) return null;
+    const decoded = decodeRequestCursor(cursor);
+    return {
+      OR: [
+        { createdAt: { lt: decoded.createdAt } },
+        { createdAt: decoded.createdAt, id: { lt: decoded.id } },
+      ],
+    };
   }
 
   async create(user: User, dto: CreateRequestDto): Promise<CreateRequestResponse> {
@@ -73,6 +158,7 @@ export class RequestsService {
         assigneeId: routing.assignee,
         status: "new",
       },
+      include: REQUEST_INCLUDE,
     });
 
     const request = toRequest(record);
@@ -112,6 +198,7 @@ export class RequestsService {
         // Claim unassigned "anyone" requests on accept
         assigneeId: record.assigneeId ?? user.id,
       },
+      include: REQUEST_INCLUDE,
     });
 
     await this.users.updateLastAcceptedAt(user.id, now);
@@ -141,6 +228,9 @@ export class RequestsService {
     if (!isVisibleToStaff(current, user.id)) {
       throw new ForbiddenException("Request not visible to you");
     }
+    if (current.forwardedBy && current.forwardedBy === targetStaffId) {
+      throw new BadRequestException("Cannot forward back to the staff who forwarded this request");
+    }
 
     const updated = await this.prisma.request.update({
       where: { id },
@@ -149,6 +239,7 @@ export class RequestsService {
         forwardedById: user.id,
         status: RequestStatus.new,
       },
+      include: REQUEST_INCLUDE,
     });
 
     const request = toRequest(updated);
@@ -177,6 +268,7 @@ export class RequestsService {
         doneById: user.id,
         doneAt: now,
       },
+      include: REQUEST_INCLUDE,
     });
 
     const request = toRequest(updated);
@@ -191,7 +283,10 @@ export class RequestsService {
   }
 
   private async getRecordOrThrow(id: string) {
-    const record = await this.prisma.request.findUnique({ where: { id } });
+    const record = await this.prisma.request.findUnique({
+      where: { id },
+      include: REQUEST_INCLUDE,
+    });
     if (!record) throw new NotFoundException("Request not found");
     return record;
   }

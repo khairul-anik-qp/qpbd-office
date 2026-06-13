@@ -1,11 +1,15 @@
+import { Type } from "class-transformer";
 import {
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
 } from "class-validator";
-import { LOCATIONS, type RequestType, type Urgency } from "@office/shared";
+import { LOCATIONS, type RequestStatus, type RequestType, type Urgency } from "@office/shared";
 
 const REQUEST_TYPES: RequestType[] = [
   "tea",
@@ -18,6 +22,24 @@ const REQUEST_TYPES: RequestType[] = [
 
 const URGENCY_LEVELS: Urgency[] = ["normal", "urgent"];
 const LOCATION_IDS = LOCATIONS.map((l) => l.id);
+const REQUEST_STATUSES: RequestStatus[] = ["new", "progress", "done"];
+
+export class ListRequestsQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit?: number;
+
+  @IsOptional()
+  @IsString()
+  cursor?: string;
+
+  @IsOptional()
+  @IsIn(REQUEST_STATUSES)
+  status?: RequestStatus;
+}
 
 export class CreateRequestDto {
   @IsIn(REQUEST_TYPES)

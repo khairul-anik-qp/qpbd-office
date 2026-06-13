@@ -16,10 +16,17 @@ export class ReminderService {
     private readonly push: PushService,
   ) {}
 
-  /** Plan §8 — scan every N minutes (env-configurable). */
+  /** Plan §8 — scan every N minutes while New-tab items exist (env-configurable). */
   @Cron(CronExpression.EVERY_MINUTE)
   async tick() {
     if (!this.isDue()) return;
+
+    const hasNewRequests = await this.prisma.request.count({
+      where: { status: "new" },
+    });
+    if (hasNewRequests === 0) return;
+
+    this.lastRun = Date.now();
     await this.scan();
   }
 
@@ -33,10 +40,7 @@ export class ReminderService {
       this.config.get<string>("STAFF_REMINDER_INTERVAL_MINUTES") ?? 5,
     );
     const intervalMs = intervalMin * 60_000;
-    const now = Date.now();
-    if (now - this.lastRun < intervalMs) return false;
-    this.lastRun = now;
-    return true;
+    return Date.now() - this.lastRun >= intervalMs;
   }
 
   async scan(): Promise<void> {

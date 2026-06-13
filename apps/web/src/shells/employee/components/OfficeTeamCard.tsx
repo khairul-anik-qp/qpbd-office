@@ -1,4 +1,5 @@
 import type { User } from "@office/shared";
+import { staffFirstName } from "@office/shared";
 import { Button } from "@/components/ui/button";
 import { AVAILABILITY_LABELS, staffInitial } from "../lib/employee-request";
 
@@ -55,7 +56,7 @@ export function OfficeTeamCard({ staff, loading, error, onRetry }: OfficeTeamCar
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[15px] font-medium leading-[18px] text-ink">
-                    {member.nameEn}
+                    {staffFirstName(member.nameEn)}
                   </p>
                   <p className="text-xs leading-4 text-muted-gray">Office helper</p>
                 </div>

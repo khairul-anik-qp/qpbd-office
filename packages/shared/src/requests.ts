@@ -1,5 +1,22 @@
 import type { Availability, Request, RequestStatus, RequestType, Urgency } from "./types.js";
 
+/** Default page size for GET /requests?limit=… */
+export const REQUESTS_PAGE_SIZE = 20;
+
+/** Query params when requesting a paginated list. */
+export interface ListRequestsParams {
+  limit?: number;
+  cursor?: string;
+  status?: RequestStatus;
+}
+
+/** Paginated GET /requests response (when `limit` is provided). */
+export interface ListRequestsPage {
+  items: Request[];
+  nextCursor: string | null;
+  total: number;
+}
+
 /** POST /requests */
 export interface CreateRequestDto {
   type: RequestType;
@@ -43,11 +60,14 @@ export interface SseEvent<T = unknown> {
 export interface AvailabilityChangedPayload {
   staffId: string;
   status: Availability;
+  /** Server auto-reset busy → available after timeout. */
+  auto?: boolean;
 }
 
 /** Plan §6 staff visibility — server-side filter. */
 export function isVisibleToStaff(request: Request, staffId: string): boolean {
   if (request.status === "new") {
+    if (request.forwardedBy === staffId) return false;
     return request.assignee === staffId || request.assignee === null;
   }
   if (request.status === "progress") {

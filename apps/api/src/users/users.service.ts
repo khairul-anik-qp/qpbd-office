@@ -114,7 +114,7 @@ export class UsersService {
     return toUser(record);
   }
 
-  async approveStaff(userId: string, nameBn: string) {
+  async approveStaff(userId: string) {
     const used = await this.prisma.user.findMany({
       where: { brandColor: { not: null } },
       select: { brandColor: true },
@@ -128,9 +128,9 @@ export class UsersService {
       data: {
         status: "active",
         approvedAt: new Date(),
-        nameBn,
         brandColor,
         availability: Availability.available,
+        availabilityChangedAt: new Date(),
       },
     });
     return toUser(record);
@@ -152,10 +152,18 @@ export class UsersService {
     return records.map(toUser);
   }
 
+  async listActiveAdminIds(): Promise<string[]> {
+    const records = await this.prisma.user.findMany({
+      where: { role: UserRole.admin, status: "active" },
+      select: { id: true },
+    });
+    return records.map((record) => record.id);
+  }
+
   async updateAvailability(userId: string, status: Availability) {
     const record = await this.prisma.user.update({
       where: { id: userId },
-      data: { availability: status },
+      data: { availability: status, availabilityChangedAt: new Date() },
     });
     return toUser(record);
   }

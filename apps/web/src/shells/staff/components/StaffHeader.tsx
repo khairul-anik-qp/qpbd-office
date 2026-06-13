@@ -1,15 +1,26 @@
 import type { User } from "@office/shared";
-import { Icon } from "@/components/Icon";
-import { bnNum, staffBanglaInitial } from "../lib/staff-format";
+import { staffFirstName } from "@office/shared";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/UserAvatar";
+import { useAuth } from "@/context/AuthContext";
+import { staffAvatarInitial } from "../lib/staff-format";
 
 interface StaffHeaderProps {
   user: User;
-  newCount: number;
 }
 
-export function StaffHeader({ user, newCount }: StaffHeaderProps) {
+export function StaffHeader({ user }: StaffHeaderProps) {
+  const { signOut } = useAuth();
   const color = user.brandColor ?? "#1B87E6";
-  const greeting = user.nameBn ?? user.nameEn;
+  const greeting = staffFirstName(user.nameEn);
+  const displayName = user.nameBn ?? user.nameEn;
 
   return (
     <header className="shrink-0 bg-dark-blue px-3.5 pb-[15px] pt-[13px] text-white">
@@ -20,7 +31,7 @@ export function StaffHeader({ user, newCount }: StaffHeaderProps) {
             style={{ backgroundColor: color }}
             aria-hidden
           >
-            {staffBanglaInitial(user)}
+            {staffAvatarInitial(user)}
           </span>
           <div className="flex flex-col gap-0.5">
             <span className="text-[13px] leading-[15px] text-white/70">
@@ -29,17 +40,41 @@ export function StaffHeader({ user, newCount }: StaffHeaderProps) {
             <span className="text-[19px] font-medium leading-6">আজকের অনুরোধ</span>
           </div>
         </div>
-        <span className="relative inline-flex size-[42px] items-center justify-center rounded-full bg-white/12">
-          <Icon name="notifications" className="size-6 text-white" aria-hidden />
-          {newCount > 0 ? (
-            <span
-              className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-dark-blue bg-danger px-[5px] text-[11px] font-medium leading-none text-white"
-              aria-label={`${newCount} new requests`}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="rounded-full outline-none ring-offset-dark-blue transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2"
+              aria-label="Open account menu"
             >
-              {bnNum(newCount)}
-            </span>
-          ) : null}
-        </span>
+              <UserAvatar
+                photoUrl={user.photoUrl}
+                name={user.nameEn}
+                className="size-[42px] rounded-full"
+                fallbackClassName="text-lg font-medium leading-none text-white"
+                fallback={
+                  <span
+                    className="flex size-full items-center justify-center rounded-full"
+                    style={{ backgroundColor: color }}
+                  >
+                    {staffAvatarInitial(user)}
+                  </span>
+                }
+                priority
+              />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuLabel className="truncate">{displayName}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-danger focus:bg-danger-soft focus:text-danger"
+              onSelect={signOut}
+            >
+              সাইন আউট · Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

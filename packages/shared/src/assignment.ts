@@ -1,4 +1,5 @@
 import type { User } from "./types.js";
+import { staffFirstName } from "./users.js";
 
 export interface AssignmentResult {
   assignee: string | null;
@@ -24,24 +25,18 @@ export function resolveAssignment(
 
   const available = staff.filter((s) => s.availability === "available");
   if (available.length > 0) {
-    if (available.length === staff.length) {
-      const picked = [...available].sort((a, b) => {
-        const aTs = a.lastAcceptedAt ? new Date(a.lastAcceptedAt).getTime() : 0;
-        const bTs = b.lastAcceptedAt ? new Date(b.lastAcceptedAt).getTime() : 0;
-        return aTs - bTs;
-      })[0]!;
-      return { assignee: picked.id, pushTargets: [picked.id] };
-    }
-    return {
-      assignee: null,
-      pushTargets: available.map((s) => s.id),
-    };
+    const picked = [...available].sort((a, b) => {
+      const aTs = a.lastAcceptedAt ? new Date(a.lastAcceptedAt).getTime() : 0;
+      const bTs = b.lastAcceptedAt ? new Date(b.lastAcceptedAt).getTime() : 0;
+      return aTs - bTs;
+    })[0]!;
+    return { assignee: picked.id, pushTargets: [picked.id] };
   }
 
   const picked = staff[Math.floor(Math.random() * staff.length)]!;
   return {
     assignee: picked.id,
     pushTargets: [picked.id],
-    busyNotice: { staffName: picked.nameEn },
+    busyNotice: { staffName: staffFirstName(picked.nameEn) },
   };
 }

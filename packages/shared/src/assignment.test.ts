@@ -30,10 +30,14 @@ describe("resolveAssignment", () => {
     assert.equal(result.busyNotice, undefined);
   });
 
-  it("leaves assignee null and pushes all available when some are busy", () => {
-    const list = [staff("a", "available"), staff("b", "busy"), staff("c", "away")];
+  it("assigns the least-recently active available staff when some are busy", () => {
+    const list = [
+      staff("a", "available", "2020-01-01T00:00:00.000Z"),
+      staff("b", "busy"),
+      staff("c", "away"),
+    ];
     const result = resolveAssignment(null, list);
-    assert.equal(result.assignee, null);
+    assert.equal(result.assignee, "a");
     assert.deepEqual(result.pushTargets, ["a"]);
   });
 
