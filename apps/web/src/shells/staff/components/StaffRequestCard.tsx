@@ -49,6 +49,7 @@ function TwoLineButton({
 
 interface StaffRequestCardProps {
   request: Request;
+  currentStaffId: string;
   staffById: Map<string, User>;
   otherStaff: User[];
   availabilityFor: (id: string) => User["availability"];
@@ -63,6 +64,7 @@ interface StaffRequestCardProps {
 
 export function StaffRequestCard({
   request,
+  currentStaffId,
   staffById,
   otherStaff,
   availabilityFor,
@@ -79,6 +81,7 @@ export function StaffRequestCard({
   const assignee = request.assignee ? staffById.get(request.assignee) : null;
   const forwardedBy = request.forwardedBy ? staffById.get(request.forwardedBy) : null;
   const isClaim = request.assignee === null;
+  const canActOnProgress = request.acceptedBy === currentStaffId;
 
   return (
     <article className="relative overflow-hidden rounded-helper border border-border bg-card shadow-pop">
@@ -174,17 +177,34 @@ export function StaffRequestCard({
           />
         ) : null}
 
-        {request.status === "progress" ? (
-          <div className="mt-3.5">
-            <TwoLineButton
-              icon="task_alt"
-              labelBn="সম্পন্ন করুন"
-              labelEn="Mark as done"
-              variant="success"
-              onClick={onComplete}
-              className="w-full flex-none"
-            />
-          </div>
+        {request.status === "progress" && !isForwarding ? (
+          canActOnProgress ? (
+            <div className="mt-3.5 flex gap-2">
+              <TwoLineButton
+                icon="task_alt"
+                labelBn="সম্পন্ন করুন"
+                labelEn="Mark as done"
+                variant="success"
+                onClick={onComplete}
+              />
+              <TwoLineButton
+                icon="forward"
+                labelBn="ফরওয়ার্ড"
+                labelEn="Forward"
+                variant="outline"
+                onClick={onStartForward}
+              />
+            </div>
+          ) : null
+        ) : null}
+
+        {request.status === "progress" && isForwarding ? (
+          <ForwardPicker
+            targets={otherStaff}
+            availabilityFor={(id) => availabilityFor(id) ?? "away"}
+            onSelect={onForward}
+            onCancel={onCancelForward}
+          />
         ) : null}
 
         {request.status === "done" ? (

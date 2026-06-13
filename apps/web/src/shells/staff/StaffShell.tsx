@@ -62,6 +62,7 @@ export default function StaffShell() {
               <StaffRequestCard
                 key={req.id}
                 request={req}
+                currentStaffId={user.id}
                 staffById={staffById}
                 otherStaff={otherStaff}
                 availabilityFor={availabilityFor}

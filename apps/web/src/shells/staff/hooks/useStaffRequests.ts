@@ -7,7 +7,7 @@ import {
   subscribeAvailability,
 } from "@/lib/availability-store";
 import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { playNewRequestChime } from "../lib/chime";
 import {
@@ -187,7 +187,13 @@ export function useStaffRequests() {
   const complete = useCallback(
     (id: string) => {
       if (!staffId) return;
-      void api.completeRequest(id).catch(() => toast.error("Could not complete request"));
+      void api.completeRequest(id).catch((err) => {
+        if (err instanceof ApiError && err.status === 403) {
+          toast.error("Only the staff who accepted this request can mark it done.");
+          return;
+        }
+        toast.error("Could not complete request");
+      });
     },
     [staffId],
   );
