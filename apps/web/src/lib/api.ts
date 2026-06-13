@@ -86,6 +86,10 @@ export const api = {
       method: "POST",
     });
   },
+
+  listStaff(): Promise<User[]> {
+    return request("/staff");
+  },
 };
 
 export { isNeedsRegistration };

@@ -143,4 +143,12 @@ export class UsersService {
     });
     return toUser(record);
   }
+
+  async listActiveStaff() {
+    const records = await this.prisma.user.findMany({
+      where: { role: UserRole.staff, status: "active" },
+      orderBy: { nameEn: "asc" },
+    });
+    return records.map(toUser);
+  }
 }

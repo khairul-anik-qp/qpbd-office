@@ -1,0 +1,248 @@
+import type { Availability, Request, RequestStatus, RequestType, User, Urgency } from "@office/shared";
+import { LOCATIONS, TYPES } from "@office/shared";
+
+export type WebView = "dashboard" | "all";
+export type AllFilter = "all" | RequestStatus;
+
+export const ALL_FILTERS: { key: AllFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "new", label: "Waiting" },
+  { key: "progress", label: "In progress" },
+  { key: "done", label: "Completed" },
+];
+
+export const AVAILABILITY_LABELS: Record<
+  Availability,
+  { en: string; soft: string; color: string }
+> = {
+  available: { en: "Available", soft: "#DFF2BF", color: "#227700" },
+  busy: { en: "Busy", soft: "#FEEFB3", color: "#9F6000" },
+  away: { en: "Away", soft: "#EEEEEE", color: "#9B9B9B" },
+};
+
+export function staffInitial(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const parts = trimmed.split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0]![0]! + parts[1]![0]!).toUpperCase();
+  }
+  return trimmed.slice(0, 2).toUpperCase();
+}
+
+export function userInitials(nameEn: string): string {
+  return staffInitial(nameEn);
+}
+
+export function locationLabel(locId: string): string {
+  return LOCATIONS.find((l) => l.id === locId)?.en ?? locId;
+}
+
+export function formatClock(ts: string | number): string {
+  const d = new Date(ts);
+  let h = d.getHours();
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${h}:${mm} ${ap}`;
+}
+
+export function agoEn(ts: string | number, now: number): string {
+  const m = Math.floor((now - new Date(ts).getTime()) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m / 60)}h ago`;
+}
+
+export function dayDiff(ts: string | number, now: number): number {
+  const startOf = (x: number) => {
+    const d = new Date(x);
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  };
+  return Math.round((startOf(now) - startOf(new Date(ts).getTime())) / 86400000);
+}
+
+export function dayLabel(ts: string | number, now: number): string {
+  const d = dayDiff(ts, now);
+  if (d <= 0) return "Today";
+  if (d === 1) return "Yesterday";
+  return new Date(ts).toLocaleDateString("en-US", { day: "numeric", month: "short" });
+}
+
+export function noteTokens(note: string): string[] {
+  return note
+    .split(/\s*,\s*/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+}
+
+export function toggleNoteToken(note: string, label: string): string {
+  const tokens = noteTokens(note);
+  const next = tokens.includes(label)
+    ? tokens.filter((t) => t !== label)
+    : [...tokens, label];
+  return next.join(", ");
+}
+
+export interface AssignmentResult {
+  assignee: string | null;
+  busyToast?: string;
+}
+
+/** Client-side preview of plan §6 routing — backend replaces in Phase 4. */
+export function resolveAssignment(
+  chosenAssignee: string | null,
+  staff: User[],
+): AssignmentResult {
+  if (chosenAssignee) return { assignee: chosenAssignee };
+  if (staff.length === 0) return { assignee: null };
+
+  const available = staff.filter((s) => s.availability === "available");
+  if (available.length > 0) {
+    if (available.length === staff.length) {
+      const picked = [...available].sort((a, b) => {
+        const aTs = a.lastAcceptedAt ? new Date(a.lastAcceptedAt).getTime() : 0;
+        const bTs = b.lastAcceptedAt ? new Date(b.lastAcceptedAt).getTime() : 0;
+        return aTs - bTs;
+      })[0]!;
+      return { assignee: picked.id };
+    }
+    return { assignee: null };
+  }
+
+  const picked = staff[Math.floor(Math.random() * staff.length)]!;
+  return {
+    assignee: picked.id,
+    busyToast: `All staffs are busy. ${picked.nameEn} will pick your request once available`,
+  };
+}
+
+export function statusChip(status: RequestStatus): { text: string; bg: string; fg: string } {
+  if (status === "new") return { text: "Waiting", bg: "#FEEFB3", fg: "#9F6000" };
+  if (status === "progress") return { text: "In progress", bg: "#CCF0FF", fg: "#215694" };
+  return { text: "Completed", bg: "#DFF2BF", fg: "#227700" };
+}
+
+export interface ProgressStep {
+  label: string;
+  done: boolean;
+  current: boolean;
+  time: string;
+}
+
+export function buildProgressSteps(request: Request): ProgressStep[] {
+  return [
+    {
+      label: "Sent",
+      done: true,
+      current: false,
+      time: formatClock(request.createdAt),
+    },
+    {
+      label: "Accepted",
+      done: request.status !== "new",
+      current: request.status === "new",
+      time: request.acceptedAt ? formatClock(request.acceptedAt) : "",
+    },
+    {
+      label: "Completed",
+      done: request.status === "done",
+      current: request.status === "progress",
+      time: request.doneAt ? formatClock(request.doneAt) : "",
+    },
+  ];
+}
+
+export function requestStats(requests: Request[], now: number) {
+  const open = requests.filter((r) => r.status === "new").length;
+  const progress = requests.filter((r) => r.status === "progress").length;
+  const doneToday = requests.filter(
+    (r) => r.status === "done" && dayDiff(r.createdAt, now) <= 0,
+  ).length;
+
+  const thirtyDaysAgo = now - 30 * 86400000;
+  const withResponse = requests.filter(
+    (r) => r.acceptedAt && new Date(r.createdAt).getTime() >= thirtyDaysAgo,
+  );
+  let avgResponse = "—";
+  if (withResponse.length > 0) {
+    const totalMin = withResponse.reduce((sum, r) => {
+      const ms = new Date(r.acceptedAt!).getTime() - new Date(r.createdAt).getTime();
+      return sum + ms / 60000;
+    }, 0);
+    const avg = Math.round(totalMin / withResponse.length);
+    avgResponse = avg < 60 ? `~${avg}m` : `~${Math.round(avg / 60)}h`;
+  }
+
+  return { open, progress, doneToday, avgResponse };
+}
+
+export function assigneeLine(
+  request: Request,
+  staffById: Map<string, User>,
+): { icon: "person" | "handyman"; text: string } {
+  if (request.status === "new") {
+    if (request.assignee) {
+      const name = staffById.get(request.assignee)?.nameEn ?? "—";
+      return { icon: "person", text: `For ${name}` };
+    }
+    return { icon: "person", text: "For anyone available" };
+  }
+  const handler = request.acceptedBy
+    ? (staffById.get(request.acceptedBy)?.nameEn ?? "—")
+    : "—";
+  return { icon: "handyman", text: `Handled by ${handler}` };
+}
+
+export function requestMeta(request: Request, now: number): string {
+  const ty = TYPES[request.type];
+  const bits = [locationLabel(request.loc), request.note, agoEn(request.createdAt, now)].filter(
+    Boolean,
+  );
+  return bits.join("  ·  ");
+}
+
+export const REQUEST_TYPES = Object.keys(TYPES) as RequestType[];
+
+export interface CreateFormState {
+  type: RequestType | null;
+  loc: string;
+  urg: Urgency;
+  note: string;
+  assignee: string | null;
+}
+
+export function defaultCreateForm(): CreateFormState {
+  return {
+    type: null,
+    loc: LOCATIONS[0]?.id ?? "",
+    urg: "normal",
+    note: "",
+    assignee: null,
+  };
+}
+
+export function nextRequestId(requests: Request[]): string {
+  const nums = requests
+    .map((r) => parseInt(r.id, 10))
+    .filter((n) => !Number.isNaN(n));
+  const max = nums.length > 0 ? Math.max(...nums) : 0;
+  return String(max + 1);
+}
+
+const STORAGE_PREFIX = "office_requests_";
+
+export function loadStoredRequests(userId: string): Request[] {
+  try {
+    const raw = localStorage.getItem(`${STORAGE_PREFIX}${userId}`);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as Request[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveStoredRequests(userId: string, requests: Request[]) {
+  localStorage.setItem(`${STORAGE_PREFIX}${userId}`, JSON.stringify(requests));
+}
