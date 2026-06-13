@@ -63,6 +63,8 @@ export class AdminController {
     if (!user || user.status !== "pending") {
       throw new NotFoundException("Pending user not found");
     }
-    return this.users.reject(userId);
+    const rejected = await this.users.reject(userId);
+    void this.email.sendRejectionNotice(rejected.email, rejected.nameEn);
+    return rejected;
   }
 }
