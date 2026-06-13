@@ -9,6 +9,7 @@ import type { CreateRequestResponse, Request, User } from "@office/shared";
 import { isVisibleToStaff } from "@office/shared";
 import { AssignmentService } from "../assignment/assignment.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { PushService } from "../push/push.service";
 import { SseService } from "../sse/sse.service";
 import { UsersService } from "../users/users.service";
 import { toRequest } from "./request.mapper";
@@ -21,6 +22,7 @@ export class RequestsService {
     private readonly users: UsersService,
     private readonly assignment: AssignmentService,
     private readonly sse: SseService,
+    private readonly push: PushService,
   ) {}
 
   async listForUser(user: User): Promise<Request[]> {
@@ -82,6 +84,7 @@ export class RequestsService {
 
     const request = toRequest(record);
     this.sse.emit("request.created", request);
+    void this.push.sendNewRequest(routing.pushTargets, request);
 
     const busyNotice = routing.busyNotice
       ? `All staffs are busy. ${routing.busyNotice.staffName} will pick your request once available`
@@ -153,6 +156,7 @@ export class RequestsService {
 
     const request = toRequest(updated);
     this.sse.emit("request.updated", request);
+    void this.push.sendForwarded(targetStaffId, request);
     return request;
   }
 

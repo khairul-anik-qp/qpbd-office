@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="QuestionPro Office Requests">
+  <rect width="512" height="512" rx="96" fill="#1B3380"/>
+  <rect x="96" y="128" width="320" height="256" rx="32" fill="#1B87E6"/>
+  <path d="M160 224h192M160 288h128" stroke="#fff" stroke-width="32" stroke-linecap="round"/>
+</svg>

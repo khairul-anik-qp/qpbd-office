@@ -1,9 +1,11 @@
 import { Icon } from "@/components/Icon";
 import { useAuth } from "@/context/AuthContext";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { userInitials } from "../lib/employee-request";
 
 export function EmployeeHeader() {
   const { user } = useAuth();
+  const { canInstall, promptInstall } = useInstallPrompt();
   const initials = user ? userInitials(user.nameEn) : "?";
 
   return (
@@ -16,13 +18,16 @@ export function EmployeeHeader() {
         <span className="text-base font-normal leading-6 text-white/55">· Office Requests</span>
       </div>
       <div className="flex items-center gap-3.5">
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-[7px] border border-white/32 px-2.5 py-1.5 text-[13px] leading-4 text-white transition-colors hover:bg-white/10"
-        >
-          <Icon name="install_desktop" className="size-4" aria-hidden />
-          Install app
-        </button>
+        {canInstall ? (
+          <button
+            type="button"
+            onClick={() => void promptInstall()}
+            className="inline-flex items-center gap-1.5 rounded-[7px] border border-white/32 px-2.5 py-1.5 text-[13px] leading-4 text-white transition-colors hover:bg-white/10"
+          >
+            <Icon name="install_desktop" className="size-4" aria-hidden />
+            Install app
+          </button>
+        ) : null}
         {user?.photoUrl ? (
           <img
             src={user.photoUrl}

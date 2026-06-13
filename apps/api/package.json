@@ -17,6 +17,7 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^10.4.4",
+    "@nestjs/schedule": "^6.0.0",
     "@office/shared": "workspace:*",
     "@prisma/client": "^6.19.3",
     "class-transformer": "^0.5.1",
@@ -25,13 +26,15 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.4.5",
     "@nestjs/schematics": "^10.2.3",
     "@types/node": "^22.7.5",
     "@types/passport-jwt": "^4.0.1",
+    "@types/web-push": "^3.6.4",
     "prisma": "^6.19.3",
     "typescript": "^5.6.3"
   }

@@ -10,10 +10,12 @@ import { EmptyTabState } from "./components/EmptyTabState";
 import { PushHeadsUp } from "./components/PushHeadsUp";
 import { useStaffRequests } from "./hooks/useStaffRequests";
 import { loadAvailabilityOverrides } from "@/lib/availability-store";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export default function StaffShell() {
-  const { signOut } = useAuth();
+  const { signOut, user: authUser } = useAuth();
   const now = useNow();
+  usePushNotifications(authUser?.role === "staff" && authUser?.status === "active");
   const {
     user,
     staffById,

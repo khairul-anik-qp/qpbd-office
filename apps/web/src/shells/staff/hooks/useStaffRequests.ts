@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import type { Availability, Request, User } from "@office/shared";
 import {
@@ -31,10 +32,14 @@ function mergeAvailability(list: User[]): User[] {
 export function useStaffRequests() {
   const { user } = useAuth();
   const staffId = user?.id ?? "";
+  const [searchParams] = useSearchParams();
 
   const [staff, setStaff] = useState<User[]>([]);
   const [requests, setRequests] = useState<Request[]>(() => loadGlobalRequests());
-  const [phoneTab, setPhoneTab] = useState<PhoneTab>("new");
+  const [phoneTab, setPhoneTab] = useState<PhoneTab>(() => {
+    const tab = searchParams.get("tab");
+    return tab === "new" || tab === "progress" || tab === "done" ? tab : "new";
+  });
   const [forwardingId, setForwardingId] = useState<string | null>(null);
   const [forwardToast, setForwardToast] = useState<ForwardToast | null>(null);
   const [activeNotif, setActiveNotif] = useState<Request | null>(null);
