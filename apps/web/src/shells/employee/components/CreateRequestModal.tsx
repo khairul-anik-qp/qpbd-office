@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import type { User } from "@office/shared";
 import { LOCATIONS, TYPES } from "@office/shared";
 import { Icon, TypeIcon } from "@/components/Icon";
@@ -97,7 +98,12 @@ export function CreateRequestModal({
                   <button
                     key={member.id}
                     type="button"
-                    onClick={() => onChange({ assignee: member.id })}
+                    onClick={() => {
+                      if (avail !== "available") {
+                        toast.warning(`${member.nameEn} is ${av.en.toLowerCase()} right now.`);
+                      }
+                      onChange({ assignee: member.id });
+                    }}
                     className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
                     style={{
                       borderColor: form.assignee === member.id ? "#1B87E6" : "#D8D8D8",

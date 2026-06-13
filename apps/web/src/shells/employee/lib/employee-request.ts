@@ -165,6 +165,12 @@ export function assigneeLine(
   const handler = request.acceptedBy
     ? (staffById.get(request.acceptedBy)?.nameEn ?? "—")
     : "—";
+  if (request.forwardedBy) {
+    const forwarded = staffById.get(request.forwardedBy)?.nameEn;
+    if (forwarded && forwarded !== handler) {
+      return { icon: "handyman", text: `Handled by ${handler} · Forwarded from ${forwarded}` };
+    }
+  }
   return { icon: "handyman", text: `Handled by ${handler}` };
 }
 

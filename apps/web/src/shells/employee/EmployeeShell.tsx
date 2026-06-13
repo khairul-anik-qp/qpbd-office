@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { DashboardView } from "./components/DashboardView";
 import { CreateRequestModal } from "./components/CreateRequestModal";
@@ -11,6 +12,7 @@ export default function EmployeeShell() {
     staffLoading,
     staffLoadError,
     retryStaff,
+    refreshStaff,
     staffById,
     requests,
     createForm,
@@ -22,6 +24,10 @@ export default function EmployeeShell() {
   } = useEmployeeRequests();
 
   const createOpen = createForm.type !== null;
+
+  useEffect(() => {
+    if (createOpen) refreshStaff();
+  }, [createOpen, refreshStaff]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background">

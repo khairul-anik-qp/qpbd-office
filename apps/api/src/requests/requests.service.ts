@@ -92,7 +92,11 @@ export class RequestsService {
     const current = toRequest(record);
 
     if (current.status !== "new") {
-      throw new BadRequestException("Request is not in New status");
+      throw new BadRequestException(
+        current.status === "progress"
+          ? "Another staff member already accepted this request"
+          : "Request is not in New status",
+      );
     }
     if (!isVisibleToStaff(current, user.id)) {
       throw new ForbiddenException("Request not visible to you");

@@ -7,6 +7,7 @@ import type {
 } from "@office/shared";
 import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
 import { getStoredToken } from "@/lib/api";
+import { setSseConnectionStatus } from "@/lib/sse-connection-store";
 import { mergePendingUser, removePendingUser } from "@/lib/pending-queue-sync";
 import { mergeRequest, setAvailabilityFromSse } from "@/lib/request-sync";
 
@@ -82,6 +83,7 @@ export function useSSE(enabled: boolean, user: User | null) {
 
       es.onopen = () => {
         backoffRef.current = 1000;
+        setSseConnectionStatus("connected");
       };
 
       for (const type of SSE_TYPES) {
@@ -93,12 +95,14 @@ export function useSSE(enabled: boolean, user: User | null) {
       es.onerror = () => {
         es.close();
         if (cancelled) return;
+        setSseConnectionStatus("reconnecting");
         const delay = backoffRef.current;
         backoffRef.current = Math.min(delay * 2, MAX_BACKOFF_MS);
         retryTimer = setTimeout(connect, delay);
       };
     };
 
+    setSseConnectionStatus("connected");
     connect();
 
     return () => {
@@ -106,6 +110,7 @@ export function useSSE(enabled: boolean, user: User | null) {
       if (retryTimer) clearTimeout(retryTimer);
       sourceRef.current?.close();
       sourceRef.current = null;
+      setSseConnectionStatus("connected");
     };
   }, [enabled, user]);
 }

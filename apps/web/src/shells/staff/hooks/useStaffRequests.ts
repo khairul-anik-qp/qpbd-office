@@ -145,7 +145,13 @@ export function useStaffRequests() {
           setActiveNotif((n) => (n?.id === id ? null : n));
           setForwardingId(null);
         })
-        .catch(() => toast.error("Could not accept request"));
+        .catch((err) => {
+          if (err instanceof ApiError) {
+            toast.error(err.message);
+            return;
+          }
+          toast.error("Could not accept request");
+        });
     },
     [staffId],
   );

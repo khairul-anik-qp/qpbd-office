@@ -49,6 +49,10 @@ export function useEmployeeData() {
     void loadStaff();
   }, [loadStaff]);
 
+  const refreshStaff = useCallback(() => {
+    void loadStaff({ quiet: true });
+  }, [loadStaff]);
+
   useEffect(() => {
     void loadStaff();
     const unsubAvail = subscribeAvailability(() => {
@@ -57,5 +61,5 @@ export function useEmployeeData() {
     return unsubAvail;
   }, [loadStaff]);
 
-  return { staff, staffLoading, staffLoadError, retryStaff, staffById, requests };
+  return { staff, staffLoading, staffLoadError, retryStaff, refreshStaff, staffById, requests };
 }
