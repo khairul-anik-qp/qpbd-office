@@ -2,13 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import type { Request, User } from "@office/shared";
 import { api } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import {
   loadAvailabilityOverrides,
   subscribeAvailability,
 } from "@/lib/availability-store";
 import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
+import { replaceAllRequests } from "@/lib/request-sync";
 
 export function useEmployeeData() {
+  const { user } = useAuth();
   const [staff, setStaff] = useState<User[]>([]);
   const [staffLoading, setStaffLoading] = useState(true);
   const [staffLoadError, setStaffLoadError] = useState(false);
@@ -16,9 +19,30 @@ export function useEmployeeData() {
 
   const staffById = useMemo(() => new Map(staff.map((s) => [s.id, s])), [staff]);
 
+  const myRequests = useMemo(() => {
+    if (!user) return requests;
+    return requests.filter((r) => r.requesterId === user.id);
+  }, [requests, user]);
+
   useEffect(() => {
-    setRequests(loadGlobalRequests());
-    return subscribeRequests(() => setRequests(loadGlobalRequests()));
+    const syncFromStore = () => setRequests(loadGlobalRequests());
+    syncFromStore();
+    const unsub = subscribeRequests(syncFromStore);
+
+    let cancelled = false;
+    void api
+      .listRequests()
+      .then((list) => {
+        if (!cancelled) replaceAllRequests(list);
+      })
+      .catch(() => {
+        // Keep cached rows; RealtimeSync bootstrap may also hydrate on remount.
+      });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
   }, []);
 
   const mergeAvailability = useCallback((list: User[]) => {
@@ -61,5 +85,13 @@ export function useEmployeeData() {
     return unsubAvail;
   }, [loadStaff]);
 
-  return { staff, staffLoading, staffLoadError, retryStaff, refreshStaff, staffById, requests };
+  return {
+    staff,
+    staffLoading,
+    staffLoadError,
+    retryStaff,
+    refreshStaff,
+    staffById,
+    requests: myRequests,
+  };
 }

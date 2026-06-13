@@ -177,34 +177,17 @@ export function StaffRequestCard({
           />
         ) : null}
 
-        {request.status === "progress" && !isForwarding ? (
-          canActOnProgress ? (
-            <div className="mt-3.5 flex gap-2">
-              <TwoLineButton
-                icon="task_alt"
-                labelBn="সম্পন্ন করুন"
-                labelEn="Mark as done"
-                variant="success"
-                onClick={onComplete}
-              />
-              <TwoLineButton
-                icon="forward"
-                labelBn="ফরওয়ার্ড"
-                labelEn="Forward"
-                variant="outline"
-                onClick={onStartForward}
-              />
-            </div>
-          ) : null
-        ) : null}
-
-        {request.status === "progress" && isForwarding ? (
-          <ForwardPicker
-            targets={otherStaff}
-            availabilityFor={(id) => availabilityFor(id) ?? "away"}
-            onSelect={onForward}
-            onCancel={onCancelForward}
-          />
+        {request.status === "progress" && canActOnProgress ? (
+          <div className="mt-3.5">
+            <TwoLineButton
+              icon="task_alt"
+              labelBn="সম্পন্ন করুন"
+              labelEn="Mark as done"
+              variant="success"
+              onClick={onComplete}
+              className="w-full"
+            />
+          </div>
         ) : null}
 
         {request.status === "done" ? (

@@ -83,9 +83,9 @@ export function PendingQueue() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <AppHeader />
-      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+      <main className="mx-auto w-full max-w-3xl min-h-0 flex-1 overflow-auto p-6">
         <div className="mb-6">
           <h1 className="text-[24px] font-normal leading-8 text-dark-blue">Signup approvals</h1>
           <p className="text-sm text-lead">Review pending employee and staff registrations</p>

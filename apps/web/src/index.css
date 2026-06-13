@@ -149,6 +149,16 @@
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
   }
+  button:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  label[for],
+  summary,
+  [role="button"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([data-disabled]),
+  [role="tab"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
   /* Focus — 3px translucent electric-blue ring (README §Focus) */
   :focus-visible {
     outline: 3px solid color-mix(in srgb, var(--color-electric) 45%, transparent);

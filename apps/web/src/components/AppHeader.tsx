@@ -21,7 +21,7 @@ export function AppHeader() {
   const showDashboard = user ? isEmployeeRole(user.role) : false;
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between bg-dark-blue px-5 text-white md:px-6">
+    <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center justify-between bg-dark-blue px-5 text-white md:px-6">
       <div className="flex items-center gap-2.5">
         <span className="flex size-[22px] items-center justify-center text-[22px] leading-none">
           <Icon name="inbox" className="size-[22px]" aria-hidden />
@@ -78,7 +78,7 @@ export function AppHeader() {
             ) : null}
             {user?.role === "admin" ? (
               <DropdownMenuItem asChild>
-                <Link to="/admin">Signup approvals</Link>
+                <Link to="/admin">Admin</Link>
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuSeparator />

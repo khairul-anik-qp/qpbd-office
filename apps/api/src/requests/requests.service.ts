@@ -135,31 +135,20 @@ export class RequestsService {
     const record = await this.getRecordOrThrow(id);
     const current = toRequest(record);
 
-    if (current.status !== "new" && current.status !== "progress") {
-      throw new BadRequestException("Only new or in-progress requests can be forwarded");
+    if (current.status !== "new") {
+      throw new BadRequestException("Only new requests can be forwarded");
     }
     if (!isVisibleToStaff(current, user.id)) {
       throw new ForbiddenException("Request not visible to you");
     }
-    if (current.status === "progress" && current.acceptedBy !== user.id) {
-      throw new ForbiddenException("Only the accepting staff can forward");
-    }
 
     const updated = await this.prisma.request.update({
       where: { id },
-      data:
-        current.status === "progress"
-          ? {
-              assigneeId: targetStaffId,
-              forwardedById: user.id,
-              acceptedById: targetStaffId,
-              status: RequestStatus.progress,
-            }
-          : {
-              assigneeId: targetStaffId,
-              forwardedById: user.id,
-              status: RequestStatus.new,
-            },
+      data: {
+        assigneeId: targetStaffId,
+        forwardedById: user.id,
+        status: RequestStatus.new,
+      },
     });
 
     const request = toRequest(updated);

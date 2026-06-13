@@ -11,9 +11,9 @@ export default function AllRequestsShell() {
   const [allFilter, setAllFilter] = useState<AllFilter>("all");
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <AppHeader />
-      <main className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
+      <main className="mx-auto flex w-full max-w-5xl min-h-0 flex-1 flex-col">
         <AllRequestsView
           requests={requests}
           staffById={staffById}
