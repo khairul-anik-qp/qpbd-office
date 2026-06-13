@@ -222,27 +222,3 @@ export function defaultCreateForm(): CreateFormState {
   };
 }
 
-export function nextRequestId(requests: Request[]): string {
-  const nums = requests
-    .map((r) => parseInt(r.id, 10))
-    .filter((n) => !Number.isNaN(n));
-  const max = nums.length > 0 ? Math.max(...nums) : 0;
-  return String(max + 1);
-}
-
-const STORAGE_PREFIX = "office_requests_";
-
-export function loadStoredRequests(userId: string): Request[] {
-  try {
-    const raw = localStorage.getItem(`${STORAGE_PREFIX}${userId}`);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Request[];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-export function saveStoredRequests(userId: string, requests: Request[]) {
-  localStorage.setItem(`${STORAGE_PREFIX}${userId}`, JSON.stringify(requests));
-}
