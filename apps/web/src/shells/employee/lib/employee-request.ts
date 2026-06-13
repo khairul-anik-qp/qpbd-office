@@ -1,7 +1,6 @@
 import type { Availability, Request, RequestStatus, RequestType, User, Urgency } from "@office/shared";
 import { LOCATIONS, TYPES } from "@office/shared";
 
-export type WebView = "dashboard" | "all";
 export type AllFilter = "all" | RequestStatus;
 
 export const ALL_FILTERS: { key: AllFilter; label: string }[] = [

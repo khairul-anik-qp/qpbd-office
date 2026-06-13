@@ -1,4 +1,20 @@
 import { STAFF_BRAND_PALETTE } from "./constants.js";
+import type { UserRole } from "./types.js";
+
+/** Admin is always an employee — can create and view own requests. */
+export function isEmployeeRole(role: UserRole): boolean {
+  return role === "employee" || role === "admin";
+}
+
+/** Role guard — admin may access employee-only routes. */
+export function hasAnyRole(
+  userRole: UserRole,
+  allowed: readonly UserRole[],
+): boolean {
+  if (allowed.includes(userRole)) return true;
+  if (userRole === "admin" && allowed.includes("employee")) return true;
+  return false;
+}
 
 /** Pick a staff brand color, preferring colors not yet assigned. */
 export function pickStaffBrandColor(usedColors: readonly string[]): string {

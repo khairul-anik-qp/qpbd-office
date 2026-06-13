@@ -5,7 +5,7 @@ import type {
   SseEventType,
   User,
 } from "@office/shared";
-import { isVisibleToStaff } from "@office/shared";
+import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
 import { getStoredToken } from "@/lib/api";
 import { mergeRequest, setAvailabilityFromSse } from "@/lib/request-sync";
 
@@ -19,8 +19,7 @@ const SSE_TYPES: SseEventType[] = [
 const MAX_BACKOFF_MS = 30_000;
 
 function shouldTrackRequest(user: User, request: Request): boolean {
-  if (user.role === "admin") return true;
-  if (user.role === "employee") return request.requesterId === user.id;
+  if (isEmployeeRole(user.role)) return request.requesterId === user.id;
   if (user.role === "staff") return isVisibleToStaff(request, user.id);
   return false;
 }

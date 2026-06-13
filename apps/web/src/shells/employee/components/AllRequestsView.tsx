@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { Request, User } from "@office/shared";
 import { Icon } from "@/components/Icon";
 import { ALL_FILTERS, dayLabel, type AllFilter } from "../lib/employee-request";
@@ -9,7 +10,6 @@ interface AllRequestsViewProps {
   now: number;
   filter: AllFilter;
   onFilterChange: (f: AllFilter) => void;
-  onBack: () => void;
 }
 
 export function AllRequestsView({
@@ -18,7 +18,6 @@ export function AllRequestsView({
   now,
   filter,
   onFilterChange,
-  onBack,
 }: AllRequestsViewProps) {
   const sorted = [...requests].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -38,14 +37,13 @@ export function AllRequestsView({
     <div className="flex flex-1 flex-col overflow-auto bg-background">
       <div className="sticky top-0 z-10 border-b border-divider bg-card px-6 py-[18px] md:px-7">
         <div className="flex items-center gap-3.5">
-          <button
-            type="button"
-            onClick={onBack}
+          <Link
+            to="/dashboard"
             className="flex size-[38px] shrink-0 items-center justify-center rounded-[9px] border border-border bg-card text-lead transition-colors hover:bg-surface"
             aria-label="Back to dashboard"
           >
             <Icon name="arrow_back" className="size-[21px]" />
-          </button>
+          </Link>
           <div>
             <h1 className="text-2xl font-normal leading-8 text-ink">All requests</h1>
             <p className="text-[13px] leading-4 text-muted-gray">

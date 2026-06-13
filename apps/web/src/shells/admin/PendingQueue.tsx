@@ -2,15 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { User } from "@office/shared";
 import { Icon } from "@/components/Icon";
+import { AppHeader } from "@/components/AppHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
 import { api } from "@/lib/api";
 import { ApproveStaffDialog } from "./ApproveStaffDialog";
 
 export function PendingQueue() {
-  const { signOut } = useAuth();
   const [pending, setPending] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [staffTarget, setStaffTarget] = useState<User | null>(null);
@@ -58,20 +57,13 @@ export function PendingQueue() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card px-6 py-4">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4">
-          <div>
-            <h1 className="text-[24px] font-normal leading-8 text-dark-blue">Signup approvals</h1>
-            <p className="text-sm text-lead">Review pending employee and staff registrations</p>
-          </div>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            Sign out
-          </Button>
+    <div className="flex min-h-screen flex-col bg-background">
+      <AppHeader />
+      <main className="mx-auto w-full max-w-3xl flex-1 p-6">
+        <div className="mb-6">
+          <h1 className="text-[24px] font-normal leading-8 text-dark-blue">Signup approvals</h1>
+          <p className="text-sm text-lead">Review pending employee and staff registrations</p>
         </div>
-      </header>
-
-      <div className="mx-auto max-w-3xl p-6">
         {loading ? (
           <p className="text-lead">Loading queue…</p>
         ) : pending.length === 0 ? (
@@ -131,7 +123,7 @@ export function PendingQueue() {
             ))}
           </ul>
         )}
-      </div>
+      </main>
 
       <ApproveStaffDialog
         user={staffTarget}

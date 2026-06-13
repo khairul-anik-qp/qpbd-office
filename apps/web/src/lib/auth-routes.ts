@@ -1,4 +1,4 @@
-import type { User, UserRole } from "@office/shared";
+import { hasAnyRole, type User, type UserRole } from "@office/shared";
 
 export function homeForUser(user: User | null): string {
   if (!user) return "/login";
@@ -16,6 +16,6 @@ export function userCanAccess(
 ): boolean {
   if (!user) return false;
   if (requireActive && user.status !== "active") return false;
-  if (roles?.length && !roles.includes(user.role)) return false;
+  if (roles?.length && !hasAnyRole(user.role, roles)) return false;
   return true;
 }

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { Request, User } from "@office/shared";
 import { RequestRow } from "./RequestRow";
 import { requestStats } from "../lib/employee-request";
@@ -16,7 +17,6 @@ interface DashboardViewProps {
   now: number;
   successToast: string | null;
   onPickCategory: (type: RequestType) => void;
-  onSeeAll: () => void;
 }
 
 export function DashboardView({
@@ -27,7 +27,6 @@ export function DashboardView({
   now,
   successToast,
   onPickCategory,
-  onSeeAll,
 }: DashboardViewProps) {
   const stats = requestStats(requests, now);
   const todays = [...requests]
@@ -66,14 +65,13 @@ export function DashboardView({
 
       <div className="mt-8 flex items-center justify-between gap-3">
         <h2 className="text-base font-medium leading-6 text-ink">Today&apos;s requests</h2>
-        <button
-          type="button"
-          onClick={onSeeAll}
+        <Link
+          to="/requests"
           className="inline-flex items-center gap-1.5 border-none bg-transparent p-0 text-sm leading-4 text-electric hover:underline"
         >
           See all
           <span aria-hidden>→</span>
-        </button>
+        </Link>
       </div>
 
       {todays.length === 0 ? (

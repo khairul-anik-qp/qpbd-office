@@ -1,6 +1,5 @@
-import { EmployeeHeader } from "./components/EmployeeHeader";
+import { AppHeader } from "@/components/AppHeader";
 import { DashboardView } from "./components/DashboardView";
-import { AllRequestsView } from "./components/AllRequestsView";
 import { CreateRequestModal } from "./components/CreateRequestModal";
 import { useNow } from "./hooks/useNow";
 import { useEmployeeRequests } from "./hooks/useEmployeeRequests";
@@ -12,46 +11,29 @@ export default function EmployeeShell() {
     staffLoading,
     staffById,
     requests,
-    webView,
-    allFilter,
-    setAllFilter,
     createForm,
     setCreateForm,
     successToast,
     openCreate,
     closeCreate,
     sendRequest,
-    openAll,
-    backToDashboard,
   } = useEmployeeRequests();
 
   const createOpen = createForm.type !== null;
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <EmployeeHeader />
+      <AppHeader />
       <main className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col">
-        {webView === "dashboard" ? (
-          <DashboardView
-            requests={requests}
-            staff={staff}
-            staffLoading={staffLoading}
-            staffById={staffById}
-            now={now}
-            successToast={successToast}
-            onPickCategory={openCreate}
-            onSeeAll={openAll}
-          />
-        ) : (
-          <AllRequestsView
-            requests={requests}
-            staffById={staffById}
-            now={now}
-            filter={allFilter}
-            onFilterChange={setAllFilter}
-            onBack={backToDashboard}
-          />
-        )}
+        <DashboardView
+          requests={requests}
+          staff={staff}
+          staffLoading={staffLoading}
+          staffById={staffById}
+          now={now}
+          successToast={successToast}
+          onPickCategory={openCreate}
+        />
       </main>
 
       <CreateRequestModal

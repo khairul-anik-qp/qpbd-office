@@ -10,6 +10,7 @@ import { TokensPage } from "@/dev/TokensPage";
 
 const AdminShell = lazy(() => import("@/shells/admin/AdminShell"));
 const EmployeeShell = lazy(() => import("@/shells/employee/EmployeeShell"));
+const AllRequestsShell = lazy(() => import("@/shells/employee/AllRequestsShell"));
 const StaffShell = lazy(() => import("@/shells/staff/StaffShell"));
 
 function ShellFallback() {
@@ -52,6 +53,16 @@ const router = createBrowserRouter([
       <RequireAuth roles={["employee"]}>
         <Suspense fallback={<ShellFallback />}>
           <EmployeeShell />
+        </Suspense>
+      </RequireAuth>
+    ),
+  },
+  {
+    path: "/requests",
+    element: (
+      <RequireAuth roles={["employee"]}>
+        <Suspense fallback={<ShellFallback />}>
+          <AllRequestsShell />
         </Suspense>
       </RequireAuth>
     ),

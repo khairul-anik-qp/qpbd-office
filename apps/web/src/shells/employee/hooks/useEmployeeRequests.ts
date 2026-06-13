@@ -1,72 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import type { Request, RequestType, User } from "@office/shared";
+import type { RequestType } from "@office/shared";
 import { LOCATIONS } from "@office/shared";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import {
-  loadAvailabilityOverrides,
-  subscribeAvailability,
-} from "@/lib/availability-store";
-import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
-import {
-  type AllFilter,
   type CreateFormState,
   defaultCreateForm,
-  type WebView,
 } from "../lib/employee-request";
+import { useEmployeeData } from "./useEmployeeData";
 
 const TOAST_MS = 4200;
 
 export function useEmployeeRequests() {
   const { user } = useAuth();
-  const [staff, setStaff] = useState<User[]>([]);
-  const [staffLoading, setStaffLoading] = useState(true);
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [webView, setWebView] = useState<WebView>("dashboard");
-  const [allFilter, setAllFilter] = useState<AllFilter>("all");
+  const { staff, staffLoading, staffById, requests } = useEmployeeData();
   const [createForm, setCreateForm] = useState<CreateFormState>(defaultCreateForm);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-
-  const staffById = useMemo(() => new Map(staff.map((s) => [s.id, s])), [staff]);
-
-  useEffect(() => {
-    setRequests(loadGlobalRequests());
-    return subscribeRequests(() => setRequests(loadGlobalRequests()));
-  }, []);
-
-  const mergeAvailability = useCallback((list: User[]) => {
-    const overrides = loadAvailabilityOverrides();
-    return list.map((s) =>
-      overrides[s.id] ? { ...s, availability: overrides[s.id] } : s,
-    );
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    setStaffLoading(true);
-    void api
-      .listStaff()
-      .then((list) => {
-        if (!cancelled) setStaff(mergeAvailability(list));
-      })
-      .catch(() => {
-        if (!cancelled) toast.error("Could not load office team.");
-      })
-      .finally(() => {
-        if (!cancelled) setStaffLoading(false);
-      });
-    const unsubAvail = subscribeAvailability(() => {
-      void api.listStaff().then((list) => {
-        if (!cancelled) setStaff(mergeAvailability(list));
-      });
-    });
-    return () => {
-      cancelled = true;
-      unsubAvail();
-    };
-  }, [mergeAvailability]);
 
   const openCreate = useCallback((type: RequestType) => {
     setCreateForm({
@@ -121,10 +72,6 @@ export function useEmployeeRequests() {
     staffLoading,
     staffById,
     requests,
-    webView,
-    setWebView,
-    allFilter,
-    setAllFilter,
     createForm,
     setCreateForm,
     successToast,
@@ -132,10 +79,5 @@ export function useEmployeeRequests() {
     openCreate,
     closeCreate,
     sendRequest,
-    openAll: () => {
-      setWebView("all");
-      setAllFilter("all");
-    },
-    backToDashboard: () => setWebView("dashboard"),
   };
 }

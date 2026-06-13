@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common";
 import { RequestStatus, UserRole } from "@prisma/client";
 import type { CreateRequestResponse, Request, User } from "@office/shared";
-import { isVisibleToStaff } from "@office/shared";
+import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
 import { AssignmentService } from "../assignment/assignment.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { PushService } from "../push/push.service";
@@ -26,14 +26,7 @@ export class RequestsService {
   ) {}
 
   async listForUser(user: User): Promise<Request[]> {
-    if (user.role === "admin") {
-      const records = await this.prisma.request.findMany({
-        orderBy: { createdAt: "desc" },
-      });
-      return records.map(toRequest);
-    }
-
-    if (user.role === "employee") {
+    if (isEmployeeRole(user.role)) {
       const records = await this.prisma.request.findMany({
         where: { requesterId: user.id },
         orderBy: { createdAt: "desc" },
@@ -56,7 +49,7 @@ export class RequestsService {
   }
 
   async create(user: User, dto: CreateRequestDto): Promise<CreateRequestResponse> {
-    if (user.role !== "employee" || user.status !== "active") {
+    if (!isEmployeeRole(user.role) || user.status !== "active") {
       throw new ForbiddenException("Only active employees can create requests");
     }
 
