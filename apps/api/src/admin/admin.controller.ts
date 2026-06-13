@@ -64,6 +64,7 @@ export class AdminController {
       throw new NotFoundException("Pending user not found");
     }
     const rejected = await this.users.reject(userId);
+    this.sse.emit("user.rejected", rejected);
     void this.email.sendRejectionNotice(rejected.email, rejected.nameEn);
     return rejected;
   }

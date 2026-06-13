@@ -7,7 +7,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { api } from "@/lib/api";
+import { subscribePendingQueue } from "@/lib/pending-queue-sync";
 import { ApproveStaffDialog } from "./ApproveStaffDialog";
+
+function sortPending(users: User[]): User[] {
+  return [...users].sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  );
+}
+
+function upsertPending(users: User[], user: User): User[] {
+  const idx = users.findIndex((entry) => entry.id === user.id);
+  const next =
+    idx >= 0 ? users.map((entry) => (entry.id === user.id ? user : entry)) : [...users, user];
+  return sortPending(next);
+}
 
 export function PendingQueue() {
   const [pending, setPending] = useState<User[]>([]);
@@ -29,6 +43,18 @@ export function PendingQueue() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    return subscribePendingQueue({
+      onRegistered: (user) => {
+        setPending((current) => upsertPending(current, user));
+        setLoading(false);
+      },
+      onRemoved: (userId) => {
+        setPending((current) => current.filter((user) => user.id !== userId));
+      },
+    });
+  }, []);
 
   async function approveEmployee(user: User) {
     setActing(user.id);

@@ -7,13 +7,16 @@ import type {
 } from "@office/shared";
 import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
 import { getStoredToken } from "@/lib/api";
+import { mergePendingUser, removePendingUser } from "@/lib/pending-queue-sync";
 import { mergeRequest, setAvailabilityFromSse } from "@/lib/request-sync";
 
 const SSE_TYPES: SseEventType[] = [
   "request.created",
   "request.updated",
   "availability.changed",
+  "user.registered",
   "user.approved",
+  "user.rejected",
 ];
 
 const MAX_BACKOFF_MS = 30_000;
@@ -37,8 +40,17 @@ function handleSseEvent(user: User, type: SseEventType, raw: string) {
       setAvailabilityFromSse(staffId, status);
       break;
     }
-    case "user.approved":
+    case "user.registered": {
+      if (user.role !== "admin") break;
+      mergePendingUser(JSON.parse(raw) as User);
       break;
+    }
+    case "user.approved":
+    case "user.rejected": {
+      if (user.role !== "admin") break;
+      removePendingUser((JSON.parse(raw) as User).id);
+      break;
+    }
     default:
       break;
   }

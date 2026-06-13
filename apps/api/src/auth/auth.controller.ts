@@ -15,6 +15,7 @@ import { GoogleAuthDto, RegisterDto } from "./dto/auth.dto";
 import { GoogleAuthService } from "./google-auth.service";
 import { JwtAuthGuard } from "./jwt-auth.guard";
 import { UsersService } from "../users/users.service";
+import { SseService } from "../sse/sse.service";
 
 @Controller("auth")
 export class AuthController {
@@ -22,6 +23,7 @@ export class AuthController {
     private readonly googleAuth: GoogleAuthService,
     private readonly users: UsersService,
     private readonly auth: AuthService,
+    private readonly sse: SseService,
   ) {}
 
   @Post("google")
@@ -83,6 +85,7 @@ export class AuthController {
 
     try {
       const user = await this.users.register(profile, dto.role);
+      this.sse.emit("user.registered", user);
       return { token: this.auth.signToken(user), user };
     } catch (err) {
       if (err instanceof Error && err.message === "ALREADY_ACTIVE") {

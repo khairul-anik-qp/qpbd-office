@@ -31,7 +31,9 @@ export type SseEventType =
   | "request.created"
   | "request.updated"
   | "availability.changed"
-  | "user.approved";
+  | "user.registered"
+  | "user.approved"
+  | "user.rejected";
 
 export interface SseEvent<T = unknown> {
   type: SseEventType;
