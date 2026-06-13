@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build:shared": "pnpm --filter @office/shared build",
+    "dev:kill": "sh -c 'for p in 3000 5173 5174; do lsof -ti :$p 2>/dev/null | xargs -r kill 2>/dev/null; done; true'",
+    "predev": "pnpm dev:kill",
     "dev": "pnpm build:shared && concurrently -n shared,api,web -c gray,cyan,magenta \"pnpm --filter @office/shared dev\" \"pnpm --filter @office/api dev\" \"pnpm --filter @office/web dev\"",
     "build": "pnpm build:shared && pnpm --filter @office/api build && pnpm --filter @office/web build",
     "db:up": "docker compose up -d postgres",

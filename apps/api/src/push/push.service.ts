@@ -18,7 +18,7 @@ export class PushService implements OnModuleInit {
   onModuleInit() {
     const publicKey = this.config.get<string>("VAPID_PUBLIC_KEY");
     const privateKey = this.config.get<string>("VAPID_PRIVATE_KEY");
-    const subject = this.config.get<string>("APP_URL") ?? "mailto:admin@questionpro.com";
+    const subject = this.vapidSubject();
 
     if (!publicKey || !privateKey) {
       this.logger.warn("VAPID keys not configured — push notifications disabled");
@@ -32,6 +32,17 @@ export class PushService implements OnModuleInit {
 
   isEnabled(): boolean {
     return this.enabled;
+  }
+
+  /** web-push requires an https: or mailto: subject — not http:// localhost. */
+  private vapidSubject(): string {
+    const explicit = this.config.get<string>("VAPID_SUBJECT");
+    if (explicit) return explicit;
+
+    const appUrl = this.config.get<string>("APP_URL");
+    if (appUrl?.startsWith("https://")) return appUrl;
+
+    return "mailto:admin@questionpro.com";
   }
 
   async subscribe(userId: string, endpoint: string, p256dh: string, auth: string) {
