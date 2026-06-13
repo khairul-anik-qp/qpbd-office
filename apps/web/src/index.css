@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Fira Sans — weights 300/400/500 only (no bold). README §Typography. */
+@import "@fontsource/fira-sans/300.css";
+@import "@fontsource/fira-sans/400.css";
+@import "@fontsource/fira-sans/500.css";
+
+/*
+ * QuestionPro Wick design tokens. Source: README §Design Tokens.
+ * Semantic names (--color-background, --color-primary, …) keep shadcn/ui
+ * components working; brand/tile/availability tokens drive the custom UI.
+ */
+@theme {
+  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand */
+  --color-dark-blue: #1b3380;
+  --color-electric: #1b87e6;
+  --color-amber: #f5a300;
+
+  /* Grays (warm-neutral ramp) */
+  --color-ink: #1a1a1a;
+  --color-lead: #545e6b;
+  --color-muted-gray: #9b9b9b;
+  --color-border-default: #d8d8d8;
+  --color-divider: #e8e8e8;
+  --color-surface: #f5f5f5;
+
+  /* Semantic pairs (deep text / soft bg) */
+  --color-success: #227700;
+  --color-success-soft: #dff2bf;
+  --color-warning: #9f6000;
+  --color-warning-soft: #feefb3;
+  --color-info: #215694;
+  --color-info-soft: #e1f0fb;
+  --color-info-soft-2: #ccf0ff;
+  --color-danger: #cc0000;
+  --color-danger-soft: #fff1f1;
+  --color-danger-soft-2: #ffbaba;
+
+  /* Availability (plan §5) */
+  --color-avail-available: #227700;
+  --color-avail-busy: #9f6000;
+  --color-avail-away: #9b9b9b;
+
+  /* Selected/interactive fill */
+  --color-selected-soft: #eef6fe;
+
+  /* shadcn semantic mapping */
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-card: #ffffff;
+  --color-card-foreground: var(--color-ink);
+  --color-popover: #ffffff;
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-electric);
+  --color-primary-foreground: #ffffff;
+  --color-secondary: var(--color-surface);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-surface);
+  --color-muted-foreground: var(--color-lead);
+  --color-accent: var(--color-selected-soft);
+  --color-accent-foreground: var(--color-electric);
+  --color-destructive: var(--color-danger);
+  --color-destructive-foreground: #ffffff;
+  --color-border: var(--color-border-default);
+  --color-input: var(--color-border-default);
+  --color-ring: var(--color-electric);
+
+  /* Radii (README §Radii) */
+  --radius: 0.5rem; /* 8px default */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-tile: 11px;
+  --radius-target: 11px;
+  --radius-action: 12px;
+  --radius-helper: 14px;
+  --radius-modal: 16px;
+
+  /* Elevation — tinted toward brand blue, never hard black (README §Elevation) */
+  --shadow-pop: 0 4px 14px rgba(27, 51, 128, 0.1);
+  --shadow-modal: 0 10px 40px rgba(27, 51, 128, 0.15);
+  --shadow-notif: 0 14px 36px rgba(27, 51, 128, 0.3);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Focus — 3px translucent electric-blue ring (README §Focus) */
+  :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--color-electric) 45%, transparent);
+    outline-offset: 1px;
+  }
+  /* Material Symbols helper (CDN stand-in; removed in issue #4). */
+  .material-symbols-rounded {
+    font-family: "Material Symbols Rounded";
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    letter-spacing: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-feature-settings: "liga";
+    font-feature-settings: "liga";
+  }
+}

@@ -12,3 +12,6 @@ apps/web/dev-dist/
 # Local-only reference material (not committed)
 plan.md
 Office Request System.dc.html
+
+# TS incremental build info
+*.tsbuildinfo
