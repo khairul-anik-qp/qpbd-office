@@ -51,6 +51,9 @@ importers:
       '@fontsource/fira-sans':
         specifier: ^5.2.7
         version: 5.2.7
+      '@fontsource/noto-sans-bengali':
+        specifier: ^5.2.11
+        version: 5.2.11
       '@office/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -387,6 +390,9 @@ packages:
 
   '@fontsource/fira-sans@5.2.7':
     resolution: {integrity: sha512-5DE4AealD/VnbwdzMgnpWfCttMQBbteNiK9DCJE7cVwZEbDTPLUoFDMMvxNQ498nZc5in7Mta9c/s+3Ehh0BAg==}
+
+  '@fontsource/noto-sans-bengali@5.2.11':
+    resolution: {integrity: sha512-sDCKgC1u83/7JwulfgyvCDab97OkN375RDeGcXtvmI2Vx9ZY5mAcjb4qBtZbv53sL8i+jLawsWvZQVs4zCNkug==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -2774,6 +2780,8 @@ snapshots:
     optional: true
 
   '@fontsource/fira-sans@5.2.7': {}
+
+  '@fontsource/noto-sans-bengali@5.2.11': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:

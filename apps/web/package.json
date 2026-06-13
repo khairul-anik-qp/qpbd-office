@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/fira-sans": "^5.2.7",
+    "@fontsource/noto-sans-bengali": "^5.2.11",
     "@office/shared": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.16",
     "@radix-ui/react-slot": "^1.2.5",
