@@ -1,0 +1,100 @@
+import {
+  BadRequestException,
+  Body,
+  ConflictException,
+  Controller,
+  Get,
+  Post,
+  Req,
+  UnauthorizedException,
+  UseGuards,
+} from "@nestjs/common";
+import type { GoogleAuthResult, User } from "@office/shared";
+import { AuthService } from "./auth.service";
+import { GoogleAuthDto, RegisterDto } from "./dto/auth.dto";
+import { GoogleAuthService } from "./google-auth.service";
+import { JwtAuthGuard } from "./jwt-auth.guard";
+import { UsersService } from "../users/users.service";
+
+@Controller("auth")
+export class AuthController {
+  constructor(
+    private readonly googleAuth: GoogleAuthService,
+    private readonly users: UsersService,
+    private readonly auth: AuthService,
+  ) {}
+
+  @Post("google")
+  async google(@Body() dto: GoogleAuthDto): Promise<GoogleAuthResult> {
+    let profile;
+    try {
+      profile = await this.googleAuth.verifyCredential(dto.credential);
+    } catch {
+      throw new UnauthorizedException("Invalid Google credential");
+    }
+
+    const existing = await this.users.findByGoogleId(profile.googleId);
+    if (existing) {
+      if (existing.status === "rejected") {
+        return {
+          needsRegistration: true,
+          profile: {
+            email: profile.email,
+            nameEn: profile.nameEn,
+            photoUrl: profile.photoUrl,
+          },
+        };
+      }
+      return { token: this.auth.signToken(existing), user: existing };
+    }
+
+    if (this.users.isBootstrapAdmin(profile.email)) {
+      const admin = await this.users.createBootstrapAdmin(profile);
+      return { token: this.auth.signToken(admin), user: admin };
+    }
+
+    return {
+      needsRegistration: true,
+      profile: {
+        email: profile.email,
+        nameEn: profile.nameEn,
+        photoUrl: profile.photoUrl,
+      },
+    };
+  }
+
+  @Post("register")
+  async register(@Body() dto: RegisterDto) {
+    let profile;
+    try {
+      profile = await this.googleAuth.verifyCredential(dto.credential);
+    } catch {
+      throw new UnauthorizedException("Invalid Google credential");
+    }
+
+    if (this.users.isBootstrapAdmin(profile.email)) {
+      const existing = await this.users.findByGoogleId(profile.googleId);
+      if (existing) {
+        return { token: this.auth.signToken(existing), user: existing };
+      }
+      const admin = await this.users.createBootstrapAdmin(profile);
+      return { token: this.auth.signToken(admin), user: admin };
+    }
+
+    try {
+      const user = await this.users.register(profile, dto.role);
+      return { token: this.auth.signToken(user), user };
+    } catch (err) {
+      if (err instanceof Error && err.message === "ALREADY_ACTIVE") {
+        throw new ConflictException("Account is already active");
+      }
+      throw err;
+    }
+  }
+
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  me(@Req() req: { user: User }) {
+    return req.user;
+  }
+}

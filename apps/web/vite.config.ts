@@ -5,6 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 
 // vite-plugin-pwa (manifest + service worker) is wired in issue #22 (deploy/PWA).
 export default defineConfig({
+  envDir: fileURLToPath(new URL("../..", import.meta.url)),
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
