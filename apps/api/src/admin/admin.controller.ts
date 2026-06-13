@@ -13,6 +13,7 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { ApproveStaffDto } from "../auth/dto/auth.dto";
+import { EmailService } from "../email/email.service";
 import { SseService } from "../sse/sse.service";
 import { UsersService } from "../users/users.service";
 
@@ -23,6 +24,7 @@ export class AdminController {
   constructor(
     private readonly users: UsersService,
     private readonly sse: SseService,
+    private readonly email: EmailService,
   ) {}
 
   @Get("pending")
@@ -51,6 +53,7 @@ export class AdminController {
     }
 
     this.sse.emit("user.approved", approved);
+    void this.email.sendApprovalNotice(approved.email, approved.nameEn);
     return approved;
   }
 

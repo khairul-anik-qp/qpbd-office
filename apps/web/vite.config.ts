@@ -2,11 +2,49 @@ import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
 
-// vite-plugin-pwa (manifest + service worker) is wired in issue #22 (deploy/PWA).
 export default defineConfig({
   envDir: fileURLToPath(new URL("../..", import.meta.url)),
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "auto",
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      manifest: {
+        name: "QuestionPro Office Requests",
+        short_name: "Office Requests",
+        description: "Internal office help-request system",
+        theme_color: "#1B3380",
+        background_color: "#F5F5F5",
+        display: "standalone",
+        start_url: "/",
+        scope: "/",
+        icons: [
+          {
+            src: "/icons/icon.svg",
+            sizes: "any",
+            type: "image/svg+xml",
+            purpose: "any",
+          },
+          {
+            src: "/icons/icon.svg",
+            sizes: "512x512",
+            type: "image/svg+xml",
+            purpose: "maskable",
+          },
+        ],
+      },
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -15,7 +53,6 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Single-origin in prod; proxy API + SSE during dev.
       "/api": { target: "http://localhost:3000", changeOrigin: true },
       "/sse": { target: "http://localhost:3000", changeOrigin: true },
     },

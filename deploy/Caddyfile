@@ -1,0 +1,11 @@
+# Production reverse proxy — set APP_DOMAIN in .env (e.g. requests.example.com).
+{$APP_DOMAIN:localhost} {
+	encode gzip
+	reverse_proxy api:3000
+}
+
+# Local HTTP fallback when APP_DOMAIN is unset
+:80 {
+	encode gzip
+	reverse_proxy api:3000
+}

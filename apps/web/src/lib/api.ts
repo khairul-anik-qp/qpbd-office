@@ -128,6 +128,13 @@ export const api = {
       body: JSON.stringify({ status }),
     });
   },
+
+  pushSubscribe(dto: import("@office/shared").PushSubscribeDto): Promise<{ ok: true }> {
+    return request("/push/subscribe", {
+      method: "POST",
+      body: JSON.stringify(dto),
+    });
+  },
 };
 
 export { isNeedsRegistration };
