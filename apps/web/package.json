@@ -25,6 +25,7 @@
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
+    "@material-symbols/svg-400": "^0.45.0",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "@vitejs/plugin-react": "^4.3.4",
