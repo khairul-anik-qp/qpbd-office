@@ -11,7 +11,9 @@
     "dev": "pnpm build:shared && concurrently -n shared,api,web -c gray,cyan,magenta \"pnpm --filter @office/shared dev\" \"pnpm --filter @office/api dev\" \"pnpm --filter @office/web dev\"",
     "build": "pnpm build:shared && pnpm --filter @office/api build && pnpm --filter @office/web build",
     "db:up": "docker compose up -d postgres",
-    "db:down": "docker compose down"
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter @office/api db:migrate",
+    "db:generate": "pnpm --filter @office/api db:generate"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
