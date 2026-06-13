@@ -8,17 +8,11 @@ import {
   loadAvailabilityOverrides,
   subscribeAvailability,
 } from "@/lib/availability-store";
-import {
-  loadGlobalRequests,
-  nextRequestId,
-  saveGlobalRequests,
-  subscribeRequests,
-} from "@/lib/request-store";
+import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
 import {
   type AllFilter,
   type CreateFormState,
   defaultCreateForm,
-  resolveAssignment,
   type WebView,
 } from "../lib/employee-request";
 
@@ -33,6 +27,7 @@ export function useEmployeeRequests() {
   const [allFilter, setAllFilter] = useState<AllFilter>("all");
   const [createForm, setCreateForm] = useState<CreateFormState>(defaultCreateForm);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
 
   const staffById = useMemo(() => new Map(staff.map((s) => [s.id, s])), [staff]);
 
@@ -85,45 +80,41 @@ export function useEmployeeRequests() {
     setCreateForm(defaultCreateForm());
   }, []);
 
-  const sendRequest = useCallback(() => {
-    if (!user || !createForm.type) return;
+  const sendRequest = useCallback(async () => {
+    if (!user || !createForm.type || sending) return;
 
-    const { assignee, busyToast } = resolveAssignment(createForm.assignee, staff);
-    const id = nextRequestId(requests);
-    const t = new Date().toISOString();
+    setSending(true);
+    try {
+      const { request, busyNotice } = await api.createRequest({
+        type: createForm.type,
+        note: createForm.note.trim(),
+        urg: createForm.urg,
+        loc: createForm.loc,
+        assignee: createForm.assignee,
+      });
 
-    const req: Request = {
-      id,
-      type: createForm.type,
-      requester: user.nameEn,
-      requesterId: user.id,
-      note: createForm.note.trim(),
-      urg: createForm.urg,
-      loc: createForm.loc,
-      assignee,
-      status: "new",
-      createdAt: t,
-    };
+      closeCreate();
 
-    setRequests((prev) => {
-      const next = [req, ...prev];
-      saveGlobalRequests(next);
-      return next;
-    });
-    closeCreate();
+      const assigneeName = request.assignee
+        ? staffById.get(request.assignee)?.nameEn
+        : null;
+      const message = assigneeName
+        ? `Request sent — ${assigneeName} has been notified`
+        : "Request sent — the office team has been notified";
 
-    const assigneeName = assignee ? staffById.get(assignee)?.nameEn : null;
-    const message = assigneeName
-      ? `Request sent — ${assigneeName} has been notified`
-      : "Request sent — the office team has been notified";
+      setSuccessToast(message);
+      setTimeout(() => setSuccessToast(null), TOAST_MS);
 
-    setSuccessToast(message);
-    setTimeout(() => setSuccessToast(null), TOAST_MS);
-
-    if (busyToast) {
-      toast.warning(busyToast, { duration: TOAST_MS });
+      if (busyNotice) {
+        toast.warning(busyNotice, { duration: TOAST_MS });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not send request";
+      toast.error(msg);
+    } finally {
+      setSending(false);
     }
-  }, [user, createForm, staff, staffById, requests, closeCreate]);
+  }, [user, createForm, staffById, closeCreate, sending]);
 
   return {
     staff,
@@ -137,6 +128,7 @@ export function useEmployeeRequests() {
     createForm,
     setCreateForm,
     successToast,
+    sending,
     openCreate,
     closeCreate,
     sendRequest,

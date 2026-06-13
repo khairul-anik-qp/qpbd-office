@@ -151,4 +151,19 @@ export class UsersService {
     });
     return records.map(toUser);
   }
+
+  async updateAvailability(userId: string, status: Availability) {
+    const record = await this.prisma.user.update({
+      where: { id: userId },
+      data: { availability: status },
+    });
+    return toUser(record);
+  }
+
+  async updateLastAcceptedAt(userId: string, at: Date) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { lastAcceptedAt: at },
+    });
+  }
 }

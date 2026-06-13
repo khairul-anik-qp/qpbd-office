@@ -1,5 +1,5 @@
 import type { Availability, Request, RequestStatus, User } from "@office/shared";
-import { LOCATIONS } from "@office/shared";
+import { LOCATIONS, isVisibleToStaff as sharedIsVisible } from "@office/shared";
 
 export type PhoneTab = RequestStatus;
 
@@ -55,13 +55,7 @@ export function staffStatusPill(
 }
 
 export function isVisibleToStaff(request: Request, staffId: string): boolean {
-  if (request.status === "new") {
-    return request.assignee === staffId || request.assignee === null;
-  }
-  if (request.status === "progress") {
-    return request.acceptedBy === staffId;
-  }
-  return request.doneBy === staffId;
+  return sharedIsVisible(request, staffId);
 }
 
 export function tabCount(requests: Request[], staffId: string, tab: PhoneTab): number {

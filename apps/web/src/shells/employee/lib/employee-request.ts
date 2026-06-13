@@ -89,33 +89,8 @@ export interface AssignmentResult {
   busyToast?: string;
 }
 
-/** Client-side preview of plan §6 routing — backend replaces in Phase 4. */
-export function resolveAssignment(
-  chosenAssignee: string | null,
-  staff: User[],
-): AssignmentResult {
-  if (chosenAssignee) return { assignee: chosenAssignee };
-  if (staff.length === 0) return { assignee: null };
-
-  const available = staff.filter((s) => s.availability === "available");
-  if (available.length > 0) {
-    if (available.length === staff.length) {
-      const picked = [...available].sort((a, b) => {
-        const aTs = a.lastAcceptedAt ? new Date(a.lastAcceptedAt).getTime() : 0;
-        const bTs = b.lastAcceptedAt ? new Date(b.lastAcceptedAt).getTime() : 0;
-        return aTs - bTs;
-      })[0]!;
-      return { assignee: picked.id };
-    }
-    return { assignee: null };
-  }
-
-  const picked = staff[Math.floor(Math.random() * staff.length)]!;
-  return {
-    assignee: picked.id,
-    busyToast: `All staffs are busy. ${picked.nameEn} will pick your request once available`,
-  };
-}
+/** Re-export plan §6 routing from shared (backend is source of truth in Phase 4). */
+export { resolveAssignment } from "@office/shared";
 
 export function statusChip(status: RequestStatus): { text: string; bg: string; fg: string } {
   if (status === "new") return { text: "Waiting", bg: "#FEEFB3", fg: "#9F6000" };
