@@ -54,6 +54,5 @@ When a value is ambiguous, the prototype wins for copy/behavior, README for visu
 
 Work is tracked as GitHub issues (`khairul-anik-qp/qpbd-office`, 23 issues across Phase 0–6). One issue per branch: `phase-N/issue-M-slug` off `main` → implement → verify acceptance criteria → commit with `Closes #M` → PR → squash-merge `--delete-branch` → sync main.
 
-- **`gh` is old (2.4.0)** — no `gh label` subcommand. Manage labels via `gh api repos/<repo>/labels`.
 - Commit messages: keep the body short; end with the `Co-Authored-By` trailer. (Long heredoc bodies passed inline to the shell have failed silently here — prefer concise messages.)
 - Verify UI changes in a real browser (Chrome DevTools MCP) against the README spec before merging — past acceptance checks confirmed exact values like the modal shadow `0 10px 40px rgba(27,51,128,.15)`.
