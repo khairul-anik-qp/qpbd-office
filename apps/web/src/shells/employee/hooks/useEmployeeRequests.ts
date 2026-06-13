@@ -5,13 +5,20 @@ import { LOCATIONS } from "@office/shared";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import {
+  loadAvailabilityOverrides,
+  subscribeAvailability,
+} from "@/lib/availability-store";
+import {
+  loadGlobalRequests,
+  nextRequestId,
+  saveGlobalRequests,
+  subscribeRequests,
+} from "@/lib/request-store";
+import {
   type AllFilter,
   type CreateFormState,
   defaultCreateForm,
-  loadStoredRequests,
-  nextRequestId,
   resolveAssignment,
-  saveStoredRequests,
   type WebView,
 } from "../lib/employee-request";
 
@@ -30,14 +37,16 @@ export function useEmployeeRequests() {
   const staffById = useMemo(() => new Map(staff.map((s) => [s.id, s])), [staff]);
 
   useEffect(() => {
-    if (!user?.id) return;
-    setRequests(loadStoredRequests(user.id));
-  }, [user?.id]);
+    setRequests(loadGlobalRequests());
+    return subscribeRequests(() => setRequests(loadGlobalRequests()));
+  }, []);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    saveStoredRequests(user.id, requests);
-  }, [user?.id, requests]);
+  const mergeAvailability = useCallback((list: User[]) => {
+    const overrides = loadAvailabilityOverrides();
+    return list.map((s) =>
+      overrides[s.id] ? { ...s, availability: overrides[s.id] } : s,
+    );
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +54,7 @@ export function useEmployeeRequests() {
     void api
       .listStaff()
       .then((list) => {
-        if (!cancelled) setStaff(list);
+        if (!cancelled) setStaff(mergeAvailability(list));
       })
       .catch(() => {
         if (!cancelled) toast.error("Could not load office team.");
@@ -53,10 +62,16 @@ export function useEmployeeRequests() {
       .finally(() => {
         if (!cancelled) setStaffLoading(false);
       });
+    const unsubAvail = subscribeAvailability(() => {
+      void api.listStaff().then((list) => {
+        if (!cancelled) setStaff(mergeAvailability(list));
+      });
+    });
     return () => {
       cancelled = true;
+      unsubAvail();
     };
-  }, []);
+  }, [mergeAvailability]);
 
   const openCreate = useCallback((type: RequestType) => {
     setCreateForm({
@@ -90,7 +105,11 @@ export function useEmployeeRequests() {
       createdAt: t,
     };
 
-    setRequests((prev) => [req, ...prev]);
+    setRequests((prev) => {
+      const next = [req, ...prev];
+      saveGlobalRequests(next);
+      return next;
+    });
     closeCreate();
 
     const assigneeName = assignee ? staffById.get(assignee)?.nameEn : null;
