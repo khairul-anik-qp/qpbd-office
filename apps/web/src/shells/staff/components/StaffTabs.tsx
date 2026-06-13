@@ -1,4 +1,6 @@
 import type { RequestStatus } from "@office/shared";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { bnNum } from "../lib/staff-format";
 
 export type StaffTab = RequestStatus;
@@ -15,35 +17,38 @@ const TABS: { key: StaffTab; label: string }[] = [
   { key: "done", label: "সম্পন্ন" },
 ];
 
+const triggerClass = cn(
+  "flex min-h-11 flex-1 items-center justify-center gap-[7px]",
+  "rounded-none border-x-0 border-t-0 border-b-2 border-b-transparent bg-transparent px-2 py-3 shadow-none",
+  "text-sm font-medium leading-4 text-muted-gray transition-colors",
+  "hover:text-lead",
+  "data-[state=active]:border-b-electric data-[state=active]:bg-transparent data-[state=active]:text-muted-gray data-[state=active]:shadow-none",
+);
+
+const badgeClass =
+  "inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-divider px-1.5 text-[11px] font-medium leading-none text-lead";
+
 export function StaffTabs({ active, counts, onChange }: StaffTabsProps) {
   return (
-    <div className="flex shrink-0 gap-[7px] border-b border-divider bg-card px-3 py-[11px]">
-      {TABS.map(({ key, label }) => {
-        const selected = active === key;
-        return (
-          <button
-            key={key}
-            type="button"
-            onClick={() => onChange(key)}
-            className="flex flex-1 items-center justify-center gap-[7px] rounded-[9px] border-none px-1.5 py-[9px] text-sm font-medium leading-4 transition-colors"
-            style={{
-              backgroundColor: selected ? "var(--color-electric)" : "var(--color-surface)",
-              color: selected ? "#fff" : "var(--color-lead)",
-            }}
-          >
-            {label}
-            <span
-              className="inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-medium leading-none"
-              style={{
-                backgroundColor: selected ? "rgba(255,255,255,.25)" : "var(--color-divider)",
-                color: selected ? "#fff" : "var(--color-lead)",
-              }}
+    <div className="shrink-0 border-b border-divider bg-card">
+      <Tabs
+        value={active}
+        onValueChange={(value) => onChange(value as StaffTab)}
+        className="w-full"
+      >
+        <TabsList className="-mb-px flex h-auto w-full gap-0 rounded-none bg-transparent p-0">
+          {TABS.map(({ key, label }, index) => (
+            <TabsTrigger
+              key={key}
+              value={key}
+              className={cn(triggerClass, index < TABS.length - 1 && "border-r border-divider")}
             >
-              {bnNum(counts[key])}
-            </span>
-          </button>
-        );
-      })}
+              {label}
+              <span className={badgeClass}>{bnNum(counts[key])}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </div>
   );
 }

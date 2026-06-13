@@ -3,21 +3,15 @@ import {
   loadGlobalRequests,
   saveGlobalRequests,
   subscribeRequests,
+  type RequestStoreEvent,
 } from "./request-store";
 import { notifyAvailability } from "./availability-store";
 
-export { subscribeRequests };
+export { subscribeRequests, type RequestStoreEvent };
 
+/** API list is source of truth — replace session cache on bootstrap. */
 export function replaceAllRequests(requests: Request[]) {
-  const current = loadGlobalRequests();
-  const byId = new Map(requests.map((r) => [r.id, r]));
-  for (const r of current) {
-    if (!byId.has(r.id)) byId.set(r.id, r);
-  }
-  const merged = [...byId.values()].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  );
-  saveGlobalRequests(merged);
+  saveGlobalRequests(requests, "bootstrap");
 }
 
 export function mergeRequest(request: Request) {
@@ -27,12 +21,12 @@ export function mergeRequest(request: Request) {
     idx >= 0
       ? current.map((r) => (r.id === request.id ? request : r))
       : [request, ...current];
-  saveGlobalRequests(next);
+  saveGlobalRequests(next, "patch");
 }
 
 export function removeRequest(id: string) {
   const next = loadGlobalRequests().filter((r) => r.id !== id);
-  saveGlobalRequests(next);
+  saveGlobalRequests(next, "patch");
 }
 
 export function setAvailabilityFromSse(staffId: string, status: Availability) {

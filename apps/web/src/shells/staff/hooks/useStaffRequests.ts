@@ -84,11 +84,14 @@ export function useStaffRequests() {
   );
 
   useEffect(() => {
-    const next = loadGlobalRequests();
-    setRequests(next);
-    const unsub = subscribeRequests(() => {
+    setRequests(loadGlobalRequests());
+    const unsub = subscribeRequests(({ type }) => {
       const updated = loadGlobalRequests();
-      detectNewRequests(updated);
+      if (type === "bootstrap") {
+        for (const req of updated) seenIdsRef.current.add(req.id);
+      } else {
+        detectNewRequests(updated);
+      }
       setRequests(updated);
     });
     return unsub;
