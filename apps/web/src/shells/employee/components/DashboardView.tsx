@@ -13,6 +13,8 @@ interface DashboardViewProps {
   requests: Request[];
   staff: User[];
   staffLoading: boolean;
+  staffLoadError: boolean;
+  onRetryStaff: () => void;
   staffById: Map<string, User>;
   now: number;
   successToast: string | null;
@@ -23,6 +25,8 @@ export function DashboardView({
   requests,
   staff,
   staffLoading,
+  staffLoadError,
+  onRetryStaff,
   staffById,
   now,
   successToast,
@@ -56,7 +60,12 @@ export function DashboardView({
       </div>
 
       <div className="mt-5">
-        <OfficeTeamCard staff={staff} loading={staffLoading} />
+        <OfficeTeamCard
+          staff={staff}
+          loading={staffLoading}
+          error={staffLoadError}
+          onRetry={onRetryStaff}
+        />
       </div>
 
       <div className="mt-8">

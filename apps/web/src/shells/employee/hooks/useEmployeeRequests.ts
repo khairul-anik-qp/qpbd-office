@@ -14,7 +14,7 @@ const TOAST_MS = 4200;
 
 export function useEmployeeRequests() {
   const { user } = useAuth();
-  const { staff, staffLoading, staffById, requests } = useEmployeeData();
+  const { staff, staffLoading, staffLoadError, retryStaff, staffById, requests } = useEmployeeData();
   const [createForm, setCreateForm] = useState<CreateFormState>(defaultCreateForm);
   const [successToast, setSuccessToast] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -70,6 +70,8 @@ export function useEmployeeRequests() {
   return {
     staff,
     staffLoading,
+    staffLoadError,
+    retryStaff,
     staffById,
     requests,
     createForm,

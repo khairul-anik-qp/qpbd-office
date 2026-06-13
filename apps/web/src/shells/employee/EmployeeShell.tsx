@@ -9,6 +9,8 @@ export default function EmployeeShell() {
   const {
     staff,
     staffLoading,
+    staffLoadError,
+    retryStaff,
     staffById,
     requests,
     createForm,
@@ -29,6 +31,8 @@ export default function EmployeeShell() {
           requests={requests}
           staff={staff}
           staffLoading={staffLoading}
+          staffLoadError={staffLoadError}
+          onRetryStaff={retryStaff}
           staffById={staffById}
           now={now}
           successToast={successToast}

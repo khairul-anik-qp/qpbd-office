@@ -11,6 +11,7 @@ import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
 export function useEmployeeData() {
   const [staff, setStaff] = useState<User[]>([]);
   const [staffLoading, setStaffLoading] = useState(true);
+  const [staffLoadError, setStaffLoadError] = useState(false);
   const [requests, setRequests] = useState<Request[]>([]);
 
   const staffById = useMemo(() => new Map(staff.map((s) => [s.id, s])), [staff]);
@@ -27,30 +28,34 @@ export function useEmployeeData() {
     );
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    setStaffLoading(true);
-    void api
-      .listStaff()
-      .then((list) => {
-        if (!cancelled) setStaff(mergeAvailability(list));
-      })
-      .catch(() => {
-        if (!cancelled) toast.error("Could not load office team.");
-      })
-      .finally(() => {
-        if (!cancelled) setStaffLoading(false);
-      });
-    const unsubAvail = subscribeAvailability(() => {
-      void api.listStaff().then((list) => {
-        if (!cancelled) setStaff(mergeAvailability(list));
-      });
-    });
-    return () => {
-      cancelled = true;
-      unsubAvail();
-    };
-  }, [mergeAvailability]);
+  const loadStaff = useCallback(
+    async (opts?: { quiet?: boolean }) => {
+      setStaffLoading(true);
+      setStaffLoadError(false);
+      try {
+        const list = await api.listStaff();
+        setStaff(mergeAvailability(list));
+      } catch {
+        setStaffLoadError(true);
+        if (!opts?.quiet) toast.error("Could not load office team.");
+      } finally {
+        setStaffLoading(false);
+      }
+    },
+    [mergeAvailability],
+  );
 
-  return { staff, staffLoading, staffById, requests };
+  const retryStaff = useCallback(() => {
+    void loadStaff();
+  }, [loadStaff]);
+
+  useEffect(() => {
+    void loadStaff();
+    const unsubAvail = subscribeAvailability(() => {
+      void loadStaff({ quiet: true });
+    });
+    return unsubAvail;
+  }, [loadStaff]);
+
+  return { staff, staffLoading, staffLoadError, retryStaff, staffById, requests };
 }

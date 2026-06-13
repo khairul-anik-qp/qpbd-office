@@ -1,12 +1,15 @@
 import type { User } from "@office/shared";
+import { Button } from "@/components/ui/button";
 import { AVAILABILITY_LABELS, staffInitial } from "../lib/employee-request";
 
 interface OfficeTeamCardProps {
   staff: User[];
   loading?: boolean;
+  error?: boolean;
+  onRetry?: () => void;
 }
 
-export function OfficeTeamCard({ staff, loading }: OfficeTeamCardProps) {
+export function OfficeTeamCard({ staff, loading, error, onRetry }: OfficeTeamCardProps) {
   const available = staff.filter((s) => s.availability === "available").length;
 
   return (
@@ -21,6 +24,15 @@ export function OfficeTeamCard({ staff, loading }: OfficeTeamCardProps) {
 
       {loading ? (
         <p className="mt-3.5 text-sm text-lead">Loading team…</p>
+      ) : error ? (
+        <div className="mt-3.5 flex flex-col items-start gap-3">
+          <p className="text-sm text-lead">
+            Could not load the office team. You can still send to anyone available, or try again.
+          </p>
+          <Button size="sm" variant="outline" onClick={onRetry} disabled={loading}>
+            Retry
+          </Button>
+        </div>
       ) : staff.length === 0 ? (
         <p className="mt-3.5 text-sm text-lead">No office helpers are set up yet.</p>
       ) : (
