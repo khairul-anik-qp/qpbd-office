@@ -6,13 +6,18 @@
 @import "@fontsource/fira-sans/400.css";
 @import "@fontsource/fira-sans/500.css";
 
+/* Noto Sans Bengali — fallback for Bangla glyphs (Fira has no Bengali subset). */
+@import "@fontsource/noto-sans-bengali/300.css";
+@import "@fontsource/noto-sans-bengali/400.css";
+@import "@fontsource/noto-sans-bengali/500.css";
+
 /*
  * QuestionPro Wick design tokens. Source: README §Design Tokens.
  * Semantic names (--color-background, --color-primary, …) keep shadcn/ui
  * components working; brand/tile/availability tokens drive the custom UI.
  */
 @theme {
-  --font-sans: "Fira Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Fira Sans", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
 
   /* Brand */
   --color-dark-blue: #1b3380;

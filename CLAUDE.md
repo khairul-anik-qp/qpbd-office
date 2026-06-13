@@ -38,7 +38,7 @@ Data flow: web → REST + SSE → NestJS → PostgreSQL. Assignment router decid
 - **Design tokens** live in `apps/web/src/index.css` as a Tailwind v4 `@theme` block, mapped 1:1 from README §Design Tokens. shadcn semantic names (`--color-primary` = electric blue `#1B87E6`, etc.) sit on top. Do not hardcode hex in components — use the tokens.
 - **Icons** are tree-shaken local SVG components (no CDN). `apps/web/scripts/gen-icons.mjs` vendors Material Symbols Rounded glyphs from `@material-symbols/svg-400` into `src/icons/material-symbols/`. Use `<Icon name="..."/>` / `<TypeIcon type="..."/>` (`src/components/Icon.tsx`). The **swap point** to a different icon set is `ICON_REGISTRY` in `src/icons/material-symbols/index.ts`. To add an icon: add its name to `ICON_NAMES` in the codegen script and re-run it. Beware: `SVGProps` carries an optional `name` — spread props *before* `name={...}` so it isn't clobbered.
 - **DB layer uses Prisma** (chosen over TypeORM).
-- **Bangla** glyphs currently render via system-font fallback (Fira Sans has no Bengali subset). Revisit before the staff UI (Phase 3) if rendering is poor.
+- **Fonts:** Fira Sans (Latin, per README) with **Noto Sans Bengali** as fallback for Bangla glyphs (Fira has no Bengali subset). Stack lives in `--font-sans`. Both bundled via `@fontsource`. Don't drop the Bengali fallback — the staff UI is Bangla-first.
 
 ## Reference docs (local-only, gitignored)
 
