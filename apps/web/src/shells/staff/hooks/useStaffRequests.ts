@@ -1,15 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import type { Availability, Request, User } from "@office/shared";
 import {
   loadAvailabilityOverrides,
-  saveAvailabilityOverride,
   subscribeAvailability,
 } from "@/lib/availability-store";
-import {
-  loadGlobalRequests,
-  saveGlobalRequests,
-  subscribeRequests,
-} from "@/lib/request-store";
+import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
 import { api } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { playNewRequestChime } from "../lib/chime";
@@ -57,16 +53,6 @@ export function useStaffRequests() {
     return (override ?? me?.availability ?? "available") as Availability;
   }, [staff, staffId]);
 
-  const reloadRequests = useCallback(() => {
-    setRequests(loadGlobalRequests());
-  }, []);
-
-  const persistRequests = useCallback((updater: (prev: Request[]) => Request[]) => {
-    const next = updater(loadGlobalRequests());
-    saveGlobalRequests(next);
-    setRequests(next);
-  }, []);
-
   const showNotification = useCallback((req: Request) => {
     setActiveNotif(req);
     setShake(true);
@@ -95,14 +81,15 @@ export function useStaffRequests() {
   );
 
   useEffect(() => {
-    reloadRequests();
+    const next = loadGlobalRequests();
+    setRequests(next);
     const unsub = subscribeRequests(() => {
-      const next = loadGlobalRequests();
-      detectNewRequests(next);
-      setRequests(next);
+      const updated = loadGlobalRequests();
+      detectNewRequests(updated);
+      setRequests(updated);
     });
     return unsub;
-  }, [reloadRequests, detectNewRequests]);
+  }, [detectNewRequests]);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,10 +124,9 @@ export function useStaffRequests() {
   const setAvailability = useCallback(
     (status: Availability) => {
       if (!staffId) return;
-      saveAvailabilityOverride(staffId, status);
-      setStaff((prev) =>
-        prev.map((s) => (s.id === staffId ? { ...s, availability: status } : s)),
-      );
+      void api.setAvailability(status).catch(() => {
+        toast.error("Could not update availability");
+      });
     },
     [staffId],
   );
@@ -148,22 +134,15 @@ export function useStaffRequests() {
   const accept = useCallback(
     (id: string) => {
       if (!staffId) return;
-      persistRequests((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                status: "progress" as const,
-                acceptedBy: staffId,
-                acceptedAt: new Date().toISOString(),
-              }
-            : r,
-        ),
-      );
-      setActiveNotif((n) => (n?.id === id ? null : n));
-      setForwardingId(null);
+      void api
+        .acceptRequest(id)
+        .then(() => {
+          setActiveNotif((n) => (n?.id === id ? null : n));
+          setForwardingId(null);
+        })
+        .catch(() => toast.error("Could not accept request"));
     },
-    [staffId, persistRequests],
+    [staffId],
   );
 
   const startForward = useCallback((id: string) => {
@@ -177,45 +156,35 @@ export function useStaffRequests() {
     (id: string, targetId: string) => {
       if (!staffId) return;
       const target = staffById.get(targetId);
-      persistRequests((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? { ...r, assignee: targetId, forwardedBy: staffId, urg: r.urg }
-            : r,
-        ),
-      );
-      setForwardingId(null);
-      setActiveNotif((n) => (n?.id === id ? null : n));
-      if (target) {
-        const toast: ForwardToast = {
-          bn: `${target.nameBn ?? target.nameEn}-কে পাঠানো হয়েছে`,
-          en: `Forwarded to ${target.nameEn}`,
-        };
-        setForwardToast(toast);
-        if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);
-        forwardTimerRef.current = setTimeout(() => setForwardToast(null), FORWARD_TOAST_MS);
-      }
+      void api
+        .forwardRequest(id, { targetStaffId: targetId })
+        .then(() => {
+          setForwardingId(null);
+          setActiveNotif((n) => (n?.id === id ? null : n));
+          if (target) {
+            const toastMsg: ForwardToast = {
+              bn: `${target.nameBn ?? target.nameEn}-কে পাঠানো হয়েছে`,
+              en: `Forwarded to ${target.nameEn}`,
+            };
+            setForwardToast(toastMsg);
+            if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);
+            forwardTimerRef.current = setTimeout(
+              () => setForwardToast(null),
+              FORWARD_TOAST_MS,
+            );
+          }
+        })
+        .catch(() => toast.error("Could not forward request"));
     },
-    [staffId, staffById, persistRequests],
+    [staffId, staffById],
   );
 
   const complete = useCallback(
     (id: string) => {
       if (!staffId) return;
-      persistRequests((prev) =>
-        prev.map((r) =>
-          r.id === id
-            ? {
-                ...r,
-                status: "done" as const,
-                doneBy: staffId,
-                doneAt: new Date().toISOString(),
-              }
-            : r,
-        ),
-      );
+      void api.completeRequest(id).catch(() => toast.error("Could not complete request"));
     },
-    [staffId, persistRequests],
+    [staffId],
   );
 
   const dismissNotif = useCallback(() => setActiveNotif(null), []);

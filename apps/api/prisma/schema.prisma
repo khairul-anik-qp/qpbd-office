@@ -25,6 +25,26 @@ enum Availability {
   away
 }
 
+enum RequestType {
+  tea
+  snack
+  supply
+  printer
+  help
+  other
+}
+
+enum Urgency {
+  normal
+  urgent
+}
+
+enum RequestStatus {
+  new
+  progress
+  done
+}
+
 model User {
   id             String        @id @default(cuid())
   googleId       String        @unique
@@ -39,4 +59,40 @@ model User {
   lastAcceptedAt DateTime?
   createdAt      DateTime      @default(now())
   approvedAt     DateTime?
+
+  requestsCreated  Request[] @relation("RequestRequester")
+  requestsAssigned Request[] @relation("RequestAssignee")
+  requestsForwarded Request[] @relation("RequestForwardedBy")
+  requestsAccepted Request[] @relation("RequestAcceptedBy")
+  requestsDone     Request[] @relation("RequestDoneBy")
+}
+
+model Request {
+  id            String        @id @default(cuid())
+  type          RequestType
+  requester     String
+  requesterId   String
+  note          String        @default("")
+  urg           Urgency       @default(normal)
+  loc           String
+  assigneeId    String?
+  status        RequestStatus @default(new)
+  forwardedById String?
+  acceptedById  String?
+  acceptedAt    DateTime?
+  doneById      String?
+  doneAt        DateTime?
+  createdAt     DateTime      @default(now())
+
+  requesterUser User  @relation("RequestRequester", fields: [requesterId], references: [id])
+  assignee      User? @relation("RequestAssignee", fields: [assigneeId], references: [id])
+  forwardedBy   User? @relation("RequestForwardedBy", fields: [forwardedById], references: [id])
+  acceptedBy    User? @relation("RequestAcceptedBy", fields: [acceptedById], references: [id])
+  doneBy        User? @relation("RequestDoneBy", fields: [doneById], references: [id])
+
+  @@index([requesterId])
+  @@index([status])
+  @@index([assigneeId])
+  @@index([acceptedById])
+  @@index([doneById])
 }

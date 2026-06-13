@@ -1,7 +1,12 @@
 import type {
   AuthResponse,
+  Availability,
+  CreateRequestDto,
+  CreateRequestResponse,
+  ForwardRequestDto,
   GoogleAuthResult,
   RegisterDto,
+  Request,
   User,
 } from "@office/shared";
 import { isNeedsRegistration } from "@office/shared";
@@ -89,6 +94,39 @@ export const api = {
 
   listStaff(): Promise<User[]> {
     return request("/staff");
+  },
+
+  listRequests(): Promise<Request[]> {
+    return request("/requests");
+  },
+
+  createRequest(dto: CreateRequestDto): Promise<CreateRequestResponse> {
+    return request("/requests", {
+      method: "POST",
+      body: JSON.stringify(dto),
+    });
+  },
+
+  acceptRequest(id: string): Promise<Request> {
+    return request(`/requests/${id}/accept`, { method: "POST" });
+  },
+
+  forwardRequest(id: string, dto: ForwardRequestDto): Promise<Request> {
+    return request(`/requests/${id}/forward`, {
+      method: "POST",
+      body: JSON.stringify(dto),
+    });
+  },
+
+  completeRequest(id: string): Promise<Request> {
+    return request(`/requests/${id}/complete`, { method: "POST" });
+  },
+
+  setAvailability(status: Availability): Promise<User> {
+    return request("/staff/availability", {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
   },
 };
 

@@ -13,13 +13,17 @@ import { JwtAuthGuard } from "../auth/jwt-auth.guard";
 import { Roles } from "../auth/roles.decorator";
 import { RolesGuard } from "../auth/roles.guard";
 import { ApproveStaffDto } from "../auth/dto/auth.dto";
+import { SseService } from "../sse/sse.service";
 import { UsersService } from "../users/users.service";
 
 @Controller("admin")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles("admin")
 export class AdminController {
-  constructor(private readonly users: UsersService) {}
+  constructor(
+    private readonly users: UsersService,
+    private readonly sse: SseService,
+  ) {}
 
   @Get("pending")
   pending(): Promise<User[]> {
@@ -36,14 +40,18 @@ export class AdminController {
       throw new NotFoundException("Pending user not found");
     }
 
+    let approved: User;
     if (user.role === "staff") {
       if (!body.nameBn?.trim()) {
         throw new BadRequestException("Bangla name is required for staff");
       }
-      return this.users.approveStaff(userId, body.nameBn.trim());
+      approved = await this.users.approveStaff(userId, body.nameBn.trim());
+    } else {
+      approved = await this.users.approveEmployee(userId);
     }
 
-    return this.users.approveEmployee(userId);
+    this.sse.emit("user.approved", approved);
+    return approved;
   }
 
   @Post("reject/:userId")

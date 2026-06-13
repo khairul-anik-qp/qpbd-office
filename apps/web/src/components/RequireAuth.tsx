@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import type { UserRole } from "@office/shared";
 import { useAuth } from "@/context/AuthContext";
 import { homeForUser, userCanAccess } from "@/lib/auth-routes";
+import { RealtimeSync } from "@/components/RealtimeSync";
 
 interface RequireAuthProps {
   children: React.ReactNode;
@@ -33,5 +34,10 @@ export function RequireAuth({
     return <Navigate to={homeForUser(user)} replace />;
   }
 
-  return children;
+  return (
+    <>
+      {requireActive && user.status === "active" ? <RealtimeSync /> : null}
+      {children}
+    </>
+  );
 }
