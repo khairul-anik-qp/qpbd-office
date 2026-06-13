@@ -101,16 +101,4 @@
     outline: 3px solid color-mix(in srgb, var(--color-electric) 45%, transparent);
     outline-offset: 1px;
   }
-  /* Material Symbols helper (CDN stand-in; removed in issue #4). */
-  .material-symbols-rounded {
-    font-family: "Material Symbols Rounded";
-    font-weight: normal;
-    font-style: normal;
-    line-height: 1;
-    letter-spacing: normal;
-    white-space: nowrap;
-    direction: ltr;
-    -webkit-font-feature-settings: "liga";
-    font-feature-settings: "liga";
-  }
 }

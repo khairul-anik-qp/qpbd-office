@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AVAILABILITY_COLORS, TYPES, type RequestType } from "@office/shared";
+import { AVAILABILITY_COLORS, TYPES, UI_ICONS, type RequestType } from "@office/shared";
+import { Icon, TypeIcon } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -115,12 +116,23 @@ export function TokensPage() {
           {types.map(([key, t]) => (
             <div key={key} className="flex items-center gap-3 rounded-[10px] border border-border bg-card p-3">
               <div className="flex size-[46px] items-center justify-center rounded-tile" style={{ background: t.bg, color: t.fg }}>
-                <span className="material-symbols-rounded text-[22px]">{t.icon}</span>
+                <TypeIcon type={key} className="size-[22px]" />
               </div>
               <div>
                 <div className="font-medium">{t.en}</div>
                 <div className="text-sm text-muted-foreground">{t.bn}</div>
               </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="UI icons (tree-shaken SVG · shared UI_ICONS)">
+        <div className="flex flex-wrap gap-4 rounded-md border border-border bg-card p-4">
+          {Object.entries(UI_ICONS).map(([key, name]) => (
+            <div key={key} className="flex w-20 flex-col items-center gap-1 text-center">
+              <Icon name={name} className="size-6 text-lead" />
+              <span className="text-[10px] text-muted-foreground">{key}</span>
             </div>
           ))}
         </div>

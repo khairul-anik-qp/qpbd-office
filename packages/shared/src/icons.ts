@@ -27,7 +27,7 @@ export const UI_ICONS = {
   back: "arrow_back",
   close: "close",
   inbox: "inbox",
-  install: "install_mobile",
+  install: "install_desktop",
   more: "more_horiz",
   add: "add",
   check: "check",
