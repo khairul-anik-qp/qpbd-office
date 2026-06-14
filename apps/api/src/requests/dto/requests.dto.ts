@@ -22,7 +22,7 @@ const REQUEST_TYPES: RequestType[] = [
 
 const URGENCY_LEVELS: Urgency[] = ["normal", "urgent"];
 const LOCATION_IDS = LOCATIONS.map((l) => l.id);
-const REQUEST_STATUSES: RequestStatus[] = ["new", "progress", "done"];
+const REQUEST_STATUSES: RequestStatus[] = ["new", "progress", "done", "discarded"];
 
 export class ListRequestsQueryDto {
   @IsOptional()

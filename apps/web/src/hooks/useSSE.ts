@@ -6,7 +6,7 @@ import type {
   SseEventType,
   User,
 } from "@office/shared";
-import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
+import { isEmployeeRole, isVisibleToStaff, isInStaffOperatingWindow, getClientTimeZone } from "@office/shared";
 import { getStoredToken } from "@/lib/api";
 import { setSseConnectionStatus } from "@/lib/sse-connection-store";
 import { mergePendingUser, removePendingUser } from "@/lib/pending-queue-sync";
@@ -25,7 +25,12 @@ const MAX_BACKOFF_MS = 30_000;
 
 function shouldTrackRequest(user: User, request: Request): boolean {
   if (isEmployeeRole(user.role)) return request.requesterId === user.id;
-  if (user.role === "staff") return isVisibleToStaff(request, user.id);
+  if (user.role === "staff") {
+    return (
+      isVisibleToStaff(request, user.id) &&
+      isInStaffOperatingWindow(request.createdAt, new Date(), getClientTimeZone())
+    );
+  }
   return false;
 }
 

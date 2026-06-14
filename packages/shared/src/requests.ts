@@ -66,6 +66,7 @@ export interface AvailabilityChangedPayload {
 
 /** Plan §6 staff visibility — server-side filter. */
 export function isVisibleToStaff(request: Request, staffId: string): boolean {
+  if (request.status === "discarded") return false;
   if (request.status === "new") {
     if (request.forwardedBy === staffId) return false;
     return request.assignee === staffId || request.assignee === null;

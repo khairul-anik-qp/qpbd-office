@@ -7,7 +7,7 @@ export type Availability = "available" | "busy" | "away";
 
 export type RequestType = "tea" | "snack" | "supply" | "printer" | "help" | "other";
 export type Urgency = "normal" | "urgent";
-export type RequestStatus = "new" | "progress" | "done";
+export type RequestStatus = "new" | "progress" | "done" | "discarded";
 
 export interface User {
   id: string;

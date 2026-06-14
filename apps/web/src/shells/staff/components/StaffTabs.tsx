@@ -1,9 +1,8 @@
-import type { RequestStatus } from "@office/shared";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { bnNum } from "../lib/staff-format";
+import { bnNum, type PhoneTab } from "../lib/staff-format";
 
-export type StaffTab = RequestStatus;
+export type StaffTab = PhoneTab;
 
 interface StaffTabsProps {
   active: StaffTab;

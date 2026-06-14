@@ -4,9 +4,15 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { RequestStatus, type Prisma } from "@prisma/client";
 import type { CreateRequestResponse, ListRequestsPage, Request, User } from "@office/shared";
-import { isEmployeeRole, isVisibleToStaff } from "@office/shared";
+import {
+  getStaffOperatingWindow,
+  isEmployeeRole,
+  isVisibleToStaff,
+  OFFICE_TIMEZONE,
+} from "@office/shared";
 import { AssignmentService } from "../assignment/assignment.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { PushService } from "../push/push.service";
@@ -26,7 +32,25 @@ export class RequestsService {
     private readonly assignment: AssignmentService,
     private readonly sse: SseService,
     private readonly push: PushService,
+    private readonly config: ConfigService,
   ) {}
+
+  private get officeTimezone(): string {
+    return this.config.get<string>("OFFICE_TIMEZONE") ?? OFFICE_TIMEZONE;
+  }
+
+  private staffOperatingWindowWhere(): Prisma.RequestWhereInput {
+    const { start, end } = getStaffOperatingWindow(new Date(), this.officeTimezone);
+    return { createdAt: { gte: start, lte: end } };
+  }
+
+  private withStaffShift(
+    user: User,
+    where: Prisma.RequestWhereInput,
+  ): Prisma.RequestWhereInput {
+    if (user.role !== "staff") return where;
+    return { AND: [this.staffOperatingWindowWhere(), where] };
+  }
 
   async listForUser(
     user: User,
@@ -92,22 +116,22 @@ export class RequestsService {
     }
 
     if (status === "new") {
-      return {
+      return this.withStaffShift(user, {
         status: "new",
         AND: [
           { OR: [{ forwardedById: null }, { forwardedById: { not: user.id } }] },
           { OR: [{ assigneeId: user.id }, { assigneeId: null }] },
         ],
-      };
+      });
     }
     if (status === "progress") {
-      return { status: "progress", acceptedById: user.id };
+      return this.withStaffShift(user, { status: "progress", acceptedById: user.id });
     }
     if (status === "done") {
-      return { status: "done", doneById: user.id };
+      return this.withStaffShift(user, { status: "done", doneById: user.id });
     }
 
-    return {
+    return this.withStaffShift(user, {
       OR: [
         {
           status: "new",
@@ -119,7 +143,7 @@ export class RequestsService {
         { status: "progress", acceptedById: user.id },
         { status: "done", doneById: user.id },
       ],
-    };
+    });
   }
 
   private buildCursorFilter(cursor?: string): Prisma.RequestWhereInput | null {

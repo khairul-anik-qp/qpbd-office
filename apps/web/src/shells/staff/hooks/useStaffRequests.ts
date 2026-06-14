@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import type { Availability, Request, User } from "@office/shared";
-import { staffFirstName } from "@office/shared";
+import { getClientTimeZone, staffFirstName } from "@office/shared";
 import {
   applyStaffAvailabilityFromApi,
   notifyAvailability,
@@ -11,6 +11,7 @@ import {
 import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { useNow } from "@/shells/employee/hooks/useNow";
 import { playNewRequestChime } from "../lib/chime";
 import {
   type ForwardToast,
@@ -19,6 +20,7 @@ import {
   sortForTab,
   tabCount,
   isVisibleToStaff,
+  isInStaffShift,
 } from "../lib/staff-format";
 
 const NOTIF_MS = 7000;
@@ -31,6 +33,8 @@ function mergeAvailability(list: User[]): User[] {
 export function useStaffRequests() {
   const { user } = useAuth();
   const staffId = user?.id ?? "";
+  const now = useNow(60_000);
+  const timeZone = useMemo(() => getClientTimeZone(), []);
   const [searchParams] = useSearchParams();
 
   const [staff, setStaff] = useState<User[]>([]);
@@ -74,13 +78,13 @@ export function useStaffRequests() {
       for (const req of list) {
         if (seenIdsRef.current.has(req.id)) continue;
         seenIdsRef.current.add(req.id);
-        if (shouldNotifyStaff(req, staffId)) {
+        if (shouldNotifyStaff(req, staffId, now, timeZone)) {
           showNotification(req);
           setPhoneTab("new");
         }
       }
     },
-    [staffId, showNotification],
+    [staffId, showNotification, now, timeZone],
   );
 
   useEffect(() => {
@@ -219,20 +223,25 @@ export function useStaffRequests() {
     setPhoneTab("new");
   }, []);
 
+  const shiftRequests = useMemo(
+    () => requests.filter((r) => isInStaffShift(r, now, timeZone)),
+    [requests, now, timeZone],
+  );
+
   const visibleRequests = useMemo(() => {
-    const filtered = requests.filter(
+    const filtered = shiftRequests.filter(
       (r) => r.status === phoneTab && isVisibleToStaff(r, staffId),
     );
     return sortForTab(filtered, phoneTab);
-  }, [requests, phoneTab, staffId]);
+  }, [shiftRequests, phoneTab, staffId]);
 
   const counts = useMemo(
     () => ({
-      new: tabCount(requests, staffId, "new"),
-      progress: tabCount(requests, staffId, "progress"),
-      done: tabCount(requests, staffId, "done"),
+      new: tabCount(shiftRequests, staffId, "new", now, timeZone),
+      progress: tabCount(shiftRequests, staffId, "progress", now, timeZone),
+      done: tabCount(shiftRequests, staffId, "done", now, timeZone),
     }),
-    [requests, staffId],
+    [shiftRequests, staffId, now, timeZone],
   );
 
   const changeTab = useCallback((tab: PhoneTab) => {

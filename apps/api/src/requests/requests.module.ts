@@ -3,12 +3,13 @@ import { AssignmentModule } from "../assignment/assignment.module";
 import { PushModule } from "../push/push.module";
 import { SseModule } from "../sse/sse.module";
 import { UsersModule } from "../users/users.module";
+import { RequestExpiryService } from "./request-expiry.service";
 import { RequestsController } from "./requests.controller";
 import { RequestsService } from "./requests.service";
 
 @Module({
   imports: [UsersModule, AssignmentModule, SseModule, PushModule],
   controllers: [RequestsController],
-  providers: [RequestsService],
+  providers: [RequestsService, RequestExpiryService],
 })
 export class RequestsModule {}

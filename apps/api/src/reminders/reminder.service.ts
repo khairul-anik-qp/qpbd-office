@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { countNewForStaff } from "@office/shared";
+import { countNewForStaff, getStaffOperatingWindow, OFFICE_TIMEZONE } from "@office/shared";
 import { PushService } from "../push/push.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { toRequest } from "../requests/request.mapper";
@@ -21,8 +21,10 @@ export class ReminderService {
   async tick() {
     if (!this.isDue()) return;
 
+    const timeZone = this.config.get<string>("OFFICE_TIMEZONE") ?? OFFICE_TIMEZONE;
+    const { start, end } = getStaffOperatingWindow(new Date(), timeZone);
     const hasNewRequests = await this.prisma.request.count({
-      where: { status: "new" },
+      where: { status: "new", createdAt: { gte: start, lte: end } },
     });
     if (hasNewRequests === 0) return;
 
@@ -51,13 +53,16 @@ export class ReminderService {
     });
     if (staff.length === 0) return;
 
+    const timeZone = this.config.get<string>("OFFICE_TIMEZONE") ?? OFFICE_TIMEZONE;
+    const { start, end } = getStaffOperatingWindow(new Date(), timeZone);
+
     const newRequests = await this.prisma.request.findMany({
-      where: { status: "new" },
+      where: { status: "new", createdAt: { gte: start, lte: end } },
     });
     const requests = newRequests.map(toRequest);
 
     for (const member of staff) {
-      const count = countNewForStaff(requests, member.id);
+      const count = countNewForStaff(requests, member.id, new Date(), timeZone);
       if (count > 0) {
         await this.push.sendReminder(member.id, count);
       }

@@ -1,7 +1,8 @@
-import type { Availability, Request, RequestStatus, User } from "@office/shared";
-import { LOCATIONS, isVisibleToStaff as sharedIsVisible, staffFirstName } from "@office/shared";
+import type { Availability, Request, User } from "@office/shared";
+import { LOCATIONS, isInStaffOperatingWindow, isVisibleToStaff as sharedIsVisible, staffFirstName } from "@office/shared";
 
-export type PhoneTab = RequestStatus;
+/** Staff phone tabs — discarded requests are hidden from staff UI. */
+export type PhoneTab = "new" | "progress" | "done";
 
 export const AVAILABILITY_LABELS: Record<
   Availability,
@@ -43,7 +44,7 @@ export function staffAvatarInitial(user: User): string {
 }
 
 export function staffStatusPill(
-  status: RequestStatus,
+  status: PhoneTab | "discarded",
   urg: Request["urg"],
 ): { text: string; bg: string; fg: string } {
   if (status === "done") return { text: "সম্পন্ন", bg: "#DFF2BF", fg: "#227700" };
@@ -56,8 +57,27 @@ export function isVisibleToStaff(request: Request, staffId: string): boolean {
   return sharedIsVisible(request, staffId);
 }
 
-export function tabCount(requests: Request[], staffId: string, tab: PhoneTab): number {
-  return requests.filter((r) => r.status === tab && isVisibleToStaff(r, staffId)).length;
+export function isInStaffShift(
+  request: Request,
+  now: number,
+  timeZone?: string,
+): boolean {
+  return isInStaffOperatingWindow(request.createdAt, new Date(now), timeZone);
+}
+
+export function tabCount(
+  requests: Request[],
+  staffId: string,
+  tab: PhoneTab,
+  now: number,
+  timeZone?: string,
+): number {
+  return requests.filter(
+    (r) =>
+      r.status === tab &&
+      isVisibleToStaff(r, staffId) &&
+      isInStaffShift(r, now, timeZone),
+  ).length;
 }
 
 export function sortForTab(requests: Request[], tab: PhoneTab): Request[] {
@@ -82,9 +102,15 @@ export function sortForTab(requests: Request[], tab: PhoneTab): Request[] {
   return list;
 }
 
-export function shouldNotifyStaff(request: Request, staffId: string): boolean {
+export function shouldNotifyStaff(
+  request: Request,
+  staffId: string,
+  now: number,
+  timeZone?: string,
+): boolean {
   if (request.status !== "new") return false;
   if (request.forwardedBy === staffId) return false;
+  if (!isInStaffShift(request, now, timeZone)) return false;
   return request.assignee === staffId || request.assignee === null;
 }
 

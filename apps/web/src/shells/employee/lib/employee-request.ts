@@ -94,6 +94,7 @@ export { resolveAssignment } from "@office/shared";
 export function statusChip(status: RequestStatus): { text: string; bg: string; fg: string } {
   if (status === "new") return { text: "Waiting", bg: "#FEEFB3", fg: "#9F6000" };
   if (status === "progress") return { text: "In progress", bg: "#CCF0FF", fg: "#215694" };
+  if (status === "discarded") return { text: "Not completed", bg: "#EEEEEE", fg: "#9B9B9B" };
   return { text: "Completed", bg: "#DFF2BF", fg: "#227700" };
 }
 
@@ -105,6 +106,30 @@ export interface ProgressStep {
 }
 
 export function buildProgressSteps(request: Request): ProgressStep[] {
+  if (request.status === "discarded") {
+    const accepted = request.acceptedAt != null;
+    return [
+      {
+        label: "Sent",
+        done: true,
+        current: false,
+        time: formatClock(request.createdAt),
+      },
+      {
+        label: "Accepted",
+        done: accepted,
+        current: !accepted,
+        time: request.acceptedAt ? formatClock(request.acceptedAt) : "",
+      },
+      {
+        label: "Completed",
+        done: false,
+        current: accepted,
+        time: "",
+      },
+    ];
+  }
+
   return [
     {
       label: "Sent",
@@ -155,6 +180,9 @@ export function assigneeLine(
   request: Request,
   staffById: Map<string, User>,
 ): { icon: "person" | "handyman"; text: string } {
+  if (request.status === "discarded") {
+    return { icon: "person", text: "Closed at end of office hours" };
+  }
   if (request.status === "new") {
     const name =
       request.assigneeName ??
