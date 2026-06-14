@@ -46,7 +46,7 @@ function formatSignupRequestDate(ts: string): string {
   return `${date}, ${time}`;
 }
 
-export function PendingQueue() {
+export function PendingQueue({ bare = false }: { bare?: boolean } = {}) {
   const { pending, loading } = usePendingSignupList();
   const [acting, setActing] = useState<string | null>(null);
 
@@ -74,14 +74,12 @@ export function PendingQueue() {
     }
   }
 
-  return (
-    <div className="flex min-h-dvh flex-col bg-background">
-      <AppHeader />
-      <main className="mx-auto w-full max-w-3xl min-h-0 flex-1 overflow-auto p-6">
-        <div className="mb-6">
-          <h1 className="text-[24px] font-normal leading-8 text-dark-blue">Signup approvals</h1>
-          <p className="text-sm text-lead">Review pending employee and staff registrations</p>
-        </div>
+  const content = (
+    <div>
+      <div className="mb-6">
+        <h1 className="text-[24px] font-normal leading-8 text-dark-blue">Signup approvals</h1>
+        <p className="text-sm text-lead">Review pending employee and staff registrations</p>
+      </div>
         {loading ? (
           <p className="text-lead">Loading queue…</p>
         ) : pending.length === 0 ? (
@@ -164,6 +162,16 @@ export function PendingQueue() {
             })}
           </ul>
         )}
+    </div>
+  );
+
+  if (bare) return content;
+
+  return (
+    <div className="flex min-h-dvh flex-col bg-background">
+      <AppHeader />
+      <main className="mx-auto w-full max-w-3xl min-h-0 flex-1 overflow-auto p-6">
+        {content}
       </main>
     </div>
   );
