@@ -147,16 +147,28 @@ export function useStaffRequests() {
     if (!staffId) return;
 
     const handler = (event: MessageEvent) => {
-      const data = event.data as { type?: string; pushType?: string; requestId?: string };
+      const data = event.data as {
+        type?: string;
+        pushType?: string;
+        requestId?: string;
+      };
       if (data?.type !== "office-push") return;
       if (data.pushType !== "request.new" && data.pushType !== "request.forwarded") return;
 
-      void refreshFromServer().catch(() => undefined);
+      void refreshFromServer()
+        .then((list) => {
+          if (document.hidden || !data.requestId) return;
+          const req = list.find((r) => r.id === data.requestId);
+          if (!req || !shouldNotifyStaff(req, staffId, now, timeZone)) return;
+          showNotification(req);
+          setPhoneTab("new");
+        })
+        .catch(() => undefined);
     };
 
     navigator.serviceWorker?.addEventListener("message", handler);
     return () => navigator.serviceWorker?.removeEventListener("message", handler);
-  }, [staffId, refreshFromServer]);
+  }, [staffId, refreshFromServer, showNotification, now, timeZone]);
 
   const setAvailability = useCallback(
     (status: Availability) => {

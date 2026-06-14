@@ -51,5 +51,7 @@ export interface Request {
   acceptedAt?: string | null;
   doneBy?: string | null;
   doneAt?: string | null;
+  /** set when the requester cancels a waiting request */
+  cancelledAt?: string | null;
   createdAt: string;
 }

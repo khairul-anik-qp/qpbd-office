@@ -10,9 +10,6 @@ coverage/
 .vite/
 apps/web/dev-dist/
 
-# Local-only reference material (not committed)
-plan.md
-
 # TS incremental build info
 *.tsbuildinfo
 

@@ -86,7 +86,7 @@ export function sortRequestsForTab(requests: Request[], tab: RequestStatus): Req
     list.sort(
       (a, b) =>
         Number(b.urg === "urgent") - Number(a.urg === "urgent") ||
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   } else if (tab === "done") {
     list.sort(
@@ -96,7 +96,7 @@ export function sortRequestsForTab(requests: Request[], tab: RequestStatus): Req
   } else {
     list.sort(
       (a, b) =>
-        new Date(a.acceptedAt ?? 0).getTime() - new Date(b.acceptedAt ?? 0).getTime(),
+        new Date(b.acceptedAt ?? 0).getTime() - new Date(a.acceptedAt ?? 0).getTime(),
     );
   }
   return list;

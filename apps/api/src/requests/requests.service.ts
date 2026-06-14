@@ -65,10 +65,10 @@ export class RequestsService {
 
   private async listAllForUser(user: User): Promise<Request[]> {
     const where = this.buildVisibilityWhere(user);
-    // Staff: urgent requests surface first, then oldest-first within tier
+    // Staff: urgent requests surface first, then newest-first within tier
     const orderBy = isEmployeeRole(user.role)
       ? ({ createdAt: "desc" } as const)
-      : [{ urg: Prisma.SortOrder.desc }, { createdAt: Prisma.SortOrder.asc }];
+      : [{ urg: Prisma.SortOrder.desc }, { createdAt: Prisma.SortOrder.desc }];
     const records = await this.prisma.request.findMany({
       where,
       orderBy,
@@ -324,7 +324,7 @@ export class RequestsService {
     }
     const updated = await this.prisma.request.update({
       where: { id },
-      data: { status: RequestStatus.discarded },
+      data: { status: RequestStatus.discarded, cancelledAt: new Date() },
       include: REQUEST_INCLUDE,
     });
     const request = toRequest(updated);

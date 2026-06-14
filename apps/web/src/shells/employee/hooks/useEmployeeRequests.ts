@@ -65,6 +65,10 @@ export function useEmployeeRequests() {
 
   const sendRequest = useCallback(async () => {
     if (!user || !createForm.type || sending) return;
+    if (!createForm.note.trim()) {
+      toast.error("Add a note or pick a quick option before sending.");
+      return;
+    }
 
     setSending(true);
     try {

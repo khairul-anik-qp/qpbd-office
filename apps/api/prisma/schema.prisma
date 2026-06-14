@@ -101,6 +101,7 @@ model Request {
   acceptedAt    DateTime?
   doneById      String?
   doneAt        DateTime?
+  cancelledAt   DateTime?
   createdAt     DateTime      @default(now())
 
   requesterUser User  @relation("RequestRequester", fields: [requesterId], references: [id])

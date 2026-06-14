@@ -1,5 +1,11 @@
 import type { Availability, Request, User } from "@office/shared";
-import { LOCATIONS, isInStaffOperatingWindow, isVisibleToStaff as sharedIsVisible, staffFirstName } from "@office/shared";
+import {
+  LOCATIONS,
+  isInStaffOperatingWindow,
+  isVisibleToStaff as sharedIsVisible,
+  sortRequestsForTab,
+  staffFirstName,
+} from "@office/shared";
 
 /** Staff phone tabs — discarded requests are hidden from staff UI. */
 export type PhoneTab = "new" | "progress" | "done";
@@ -81,25 +87,7 @@ export function tabCount(
 }
 
 export function sortForTab(requests: Request[], tab: PhoneTab): Request[] {
-  const list = [...requests];
-  if (tab === "new") {
-    list.sort(
-      (a, b) =>
-        Number(b.urg === "urgent") - Number(a.urg === "urgent") ||
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    );
-  } else if (tab === "done") {
-    list.sort(
-      (a, b) =>
-        new Date(b.doneAt ?? 0).getTime() - new Date(a.doneAt ?? 0).getTime(),
-    );
-  } else {
-    list.sort(
-      (a, b) =>
-        new Date(a.acceptedAt ?? 0).getTime() - new Date(b.acceptedAt ?? 0).getTime(),
-    );
-  }
-  return list;
+  return sortRequestsForTab(requests, tab);
 }
 
 export function shouldNotifyStaff(

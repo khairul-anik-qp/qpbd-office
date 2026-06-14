@@ -40,6 +40,7 @@ export function CreateRequestModal({
   const def = type ? TYPES[type] : null;
   const tokens = noteTokens(form.note);
   const options = def?.options ?? [];
+  const noteReady = form.note.trim().length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,8 +196,12 @@ export function CreateRequestModal({
               onChange={(e) => onChange({ note: e.target.value })}
               rows={3}
               placeholder="Add details…"
+              aria-required
               className="w-full resize-y rounded-lg border border-border bg-card px-3 py-2 text-sm text-ink placeholder:text-muted-gray focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-electric/45"
             />
+            {!noteReady && (
+              <p className="text-xs text-muted-gray">Pick a quick option or add a note to send.</p>
+            )}
           </div>
         </div>
 
@@ -204,7 +209,7 @@ export function CreateRequestModal({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button type="button" onClick={onSend}>
+          <Button type="button" onClick={onSend} disabled={!noteReady}>
             <Icon name="send" className="size-4" aria-hidden />
             Send request
           </Button>

@@ -29,7 +29,7 @@ describe("sortRequestsForTab — new tab", () => {
     assert.equal(sorted[1]!.id, "a");
   });
 
-  it("sorts oldest-first within each urgency tier", () => {
+  it("sorts newest-first within each urgency tier", () => {
     const u1 = makeRequest({ id: "u1", urg: "urgent", createdAt: "2024-01-01T08:00:00Z" });
     const u2 = makeRequest({ id: "u2", urg: "urgent", createdAt: "2024-01-01T09:00:00Z" });
     const n1 = makeRequest({ id: "n1", urg: "normal", createdAt: "2024-01-01T07:00:00Z" });
@@ -38,7 +38,7 @@ describe("sortRequestsForTab — new tab", () => {
     const sorted = sortRequestsForTab([n2, n1, u2, u1], "new");
     assert.deepEqual(
       sorted.map((r) => r.id),
-      ["u1", "u2", "n1", "n2"],
+      ["u2", "u1", "n2", "n1"],
     );
   });
 

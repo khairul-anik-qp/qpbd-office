@@ -24,6 +24,7 @@ export function toRequest(record: RequestRecord): Request {
     acceptedAt: record.acceptedAt?.toISOString() ?? null,
     doneBy: record.doneById,
     doneAt: record.doneAt?.toISOString() ?? null,
+    cancelledAt: record.cancelledAt?.toISOString() ?? null,
     createdAt: record.createdAt.toISOString(),
   };
 }

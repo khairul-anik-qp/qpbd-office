@@ -205,6 +205,9 @@ export function assigneeLine(
   staffById: Map<string, User>,
 ): { icon: "person" | "handyman"; text: string } {
   if (request.status === "discarded") {
+    if (request.cancelledAt) {
+      return { icon: "person", text: "You canceled this request" };
+    }
     return { icon: "person", text: "Closed at end of office hours" };
   }
   if (request.status === "new") {

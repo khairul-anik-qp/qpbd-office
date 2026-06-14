@@ -53,6 +53,16 @@ export class PushService implements OnModuleInit {
     });
   }
 
+  /** High urgency wakes mobile devices for instant staff alerts; reminders stay normal. */
+  private deliveryOptions(payload: PushPayload): webpush.RequestOptions {
+    const instant =
+      payload.type === "request.new" || payload.type === "request.forwarded";
+    return {
+      urgency: instant ? "high" : "normal",
+      TTL: instant ? 60 : 86_400,
+    };
+  }
+
   async sendToStaff(staffIds: string[], payload: PushPayload): Promise<void> {
     if (!this.enabled || staffIds.length === 0) return;
 
@@ -70,6 +80,7 @@ export class PushService implements OnModuleInit {
       body,
       ...payload,
     });
+    const options = this.deliveryOptions(payload);
 
     await Promise.allSettled(
       subs.map(async (sub) => {
@@ -80,6 +91,7 @@ export class PushService implements OnModuleInit {
               keys: { p256dh: sub.p256dh, auth: sub.auth },
             },
             notification,
+            options,
           );
         } catch (err: unknown) {
           const status = (err as { statusCode?: number }).statusCode;
