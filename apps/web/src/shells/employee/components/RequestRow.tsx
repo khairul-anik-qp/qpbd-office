@@ -13,9 +13,10 @@ interface RequestRowProps {
   request: Request;
   staffById: Map<string, User>;
   now: number;
+  onCancel?: () => void;
 }
 
-export function RequestRow({ request, staffById, now }: RequestRowProps) {
+export function RequestRow({ request, staffById, now, onCancel }: RequestRowProps) {
   const def = TYPES[request.type];
   const chip = statusChip(request.status);
   const assign = assigneeLine(request, staffById);
@@ -48,6 +49,17 @@ export function RequestRow({ request, staffById, now }: RequestRowProps) {
           </span>
         </div>
         <ProgressTracker steps={steps} />
+        {onCancel && (
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-xs text-muted-gray hover:text-red-500 transition-colors"
+            >
+              Cancel request
+            </button>
+          </div>
+        )}
       </div>
     </article>
   );

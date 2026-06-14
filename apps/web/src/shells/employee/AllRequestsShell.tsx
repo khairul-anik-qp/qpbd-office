@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 import { AppHeader } from "@/components/AppHeader";
 import { AllRequestsView } from "./components/AllRequestsView";
 import { useAllRequestsPage } from "./hooks/useAllRequestsPage";
 import { useNow } from "./hooks/useNow";
 import { useEmployeeData } from "./hooks/useEmployeeData";
 import { type AllFilter } from "./lib/employee-request";
+import { api } from "@/lib/api";
+import { mergeRequest } from "@/lib/request-sync";
 
 export default function AllRequestsShell() {
   const now = useNow();
@@ -20,6 +23,16 @@ export default function AllRequestsShell() {
     loadMore,
     retry,
   } = useAllRequestsPage(allFilter);
+
+  const cancelRequest = useCallback(async (id: string) => {
+    try {
+      const updated = await api.cancelRequest(id);
+      mergeRequest(updated);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not cancel request";
+      toast.error(msg);
+    }
+  }, []);
 
   return (
     <div className="flex min-h-dvh flex-col bg-background">
@@ -38,6 +51,7 @@ export default function AllRequestsShell() {
           hasMore={hasMore}
           onLoadMore={loadMore}
           onRetry={retry}
+          onCancelRequest={cancelRequest}
         />
       </main>
     </div>

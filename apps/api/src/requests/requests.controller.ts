@@ -52,4 +52,9 @@ export class RequestsController {
   complete(@CurrentUser() user: User, @Param("id") id: string): Promise<Request> {
     return this.requests.complete(user, id);
   }
+
+  @Post(":id/cancel")
+  cancel(@CurrentUser() user: User, @Param("id") id: string): Promise<Request> {
+    return this.requests.cancel(user, id);
+  }
 }

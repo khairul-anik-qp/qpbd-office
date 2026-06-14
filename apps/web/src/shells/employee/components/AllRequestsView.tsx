@@ -18,6 +18,7 @@ interface AllRequestsViewProps {
   hasMore: boolean;
   onLoadMore: () => void;
   onRetry: () => void;
+  onCancelRequest: (id: string) => void;
 }
 
 export function AllRequestsView({
@@ -33,6 +34,7 @@ export function AllRequestsView({
   hasMore,
   onLoadMore,
   onRetry,
+  onCancelRequest,
 }: AllRequestsViewProps) {
   const groups: { label: string; rows: Request[] }[] = [];
   for (const r of requests) {
@@ -112,7 +114,13 @@ export function AllRequestsView({
                 </h2>
                 <div className="flex flex-col gap-3">
                   {g.rows.map((r) => (
-                    <RequestRow key={r.id} request={r} staffById={staffById} now={now} />
+                    <RequestRow
+                      key={r.id}
+                      request={r}
+                      staffById={staffById}
+                      now={now}
+                      onCancel={r.status === "new" ? () => onCancelRequest(r.id) : undefined}
+                    />
                   ))}
                 </div>
               </section>

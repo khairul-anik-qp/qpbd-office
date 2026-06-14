@@ -21,6 +21,7 @@ export default function EmployeeShell() {
     openCreate,
     closeCreate,
     sendRequest,
+    cancelRequest,
   } = useEmployeeRequests();
 
   const createOpen = createForm.type !== null;
@@ -43,6 +44,7 @@ export default function EmployeeShell() {
           now={now}
           successToast={successToast}
           onPickCategory={openCreate}
+          onCancelRequest={cancelRequest}
         />
       </main>
 
