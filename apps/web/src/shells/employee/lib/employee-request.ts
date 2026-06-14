@@ -203,8 +203,16 @@ export function assigneeLine(
   return { icon: "handyman", text: `Handled by ${handler}` };
 }
 
+export function doneInText(request: Request): string | null {
+  if (request.status !== "done" || !request.doneAt) return null;
+  const ms = new Date(request.doneAt).getTime() - new Date(request.createdAt).getTime();
+  const m = Math.round(ms / 60000);
+  if (m < 1) return "Done in under a minute";
+  if (m < 60) return `Done in ${m} min`;
+  return `Done in ${Math.round(m / 60)}h`;
+}
+
 export function requestMeta(request: Request, now: number): string {
-  const ty = TYPES[request.type];
   const bits = [locationLabel(request.loc), request.note, agoEn(request.createdAt, now)].filter(
     Boolean,
   );
