@@ -9,10 +9,14 @@ export interface Location {
 
 /** Hardcoded office locations (v1). */
 export const LOCATIONS: readonly Location[] = [
-  { id: "l1", en: "3F · Dev desk", bn: "৩য় তলা · ডেভ ডেস্ক" },
-  { id: "l2", en: "4F · Meeting room", bn: "৪র্থ তলা · মিটিং রুম" },
-  { id: "l3", en: "Reception", bn: "রিসেপশন" },
-  { id: "l4", en: "2F · Pantry", bn: "২য় তলা · প্যান্ট্রি" },
+  { id: "l1", en: "Dev desk 1", bn: "ডেভ ডেস্ক ১" },
+  { id: "l2", en: "Dev desk 2", bn: "ডেভ ডেস্ক ২" },
+  { id: "l3", en: "Dev desk 3", bn: "ডেভ ডেস্ক ৩" },
+  { id: "l4", en: "Dev desk 4", bn: "ডেভ ডেস্ক ৪" },
+  { id: "l5", en: "Marketing desk", bn: "মার্কেটিং ডেস্ক" },
+  { id: "l6", en: "Meeting room", bn: "মিটিং রুম" },
+  { id: "l7", en: "Admin room", bn: "অ্যাডমিন রুম" },
+  { id: "l8", en: "Dining room", bn: "ডাইনিং রুম" },
 ] as const;
 
 export interface RequestTypeDef {
@@ -37,7 +41,7 @@ export const TYPES: Record<RequestType, RequestTypeDef> = {
     bg: "#FEEFB3",
     fg: "#9F6000",
     options: [
-      "র কফি · Black coffee",
+      "ব্ল্যাক কফি · Black coffee",
       "দুধ কফি · White coffee",
       "দুধ চা · Milk tea",
       "গ্রিন টি · Green tea",
