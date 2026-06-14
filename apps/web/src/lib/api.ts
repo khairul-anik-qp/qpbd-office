@@ -133,6 +133,10 @@ export const api = {
     return request(`/requests/${id}/complete`, { method: "POST" });
   },
 
+  cancelRequest(id: string): Promise<Request> {
+    return request(`/requests/${id}/cancel`, { method: "POST" });
+  },
+
   setAvailability(status: Availability): Promise<User> {
     return request("/staff/availability", {
       method: "PATCH",

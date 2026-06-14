@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -295,6 +296,28 @@ export class RequestsService {
       include: REQUEST_INCLUDE,
     });
 
+    const request = toRequest(updated);
+    this.sse.emit("request.updated", request);
+    return request;
+  }
+
+  async cancel(user: User, id: string): Promise<Request> {
+    if (!isEmployeeRole(user.role)) {
+      throw new ForbiddenException("Only employees can cancel requests");
+    }
+    const record = await this.getRecordOrThrow(id);
+    const current = toRequest(record);
+    if (current.requesterId !== user.id) {
+      throw new ForbiddenException("You can only cancel your own requests");
+    }
+    if (current.status !== "new") {
+      throw new ConflictException("Only new requests can be cancelled");
+    }
+    const updated = await this.prisma.request.update({
+      where: { id },
+      data: { status: RequestStatus.discarded },
+      include: REQUEST_INCLUDE,
+    });
     const request = toRequest(updated);
     this.sse.emit("request.updated", request);
     return request;

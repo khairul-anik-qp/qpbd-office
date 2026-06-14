@@ -19,6 +19,7 @@ interface DashboardViewProps {
   now: number;
   successToast: string | null;
   onPickCategory: (type: RequestType) => void;
+  onCancelRequest: (id: string) => void;
 }
 
 export function DashboardView({
@@ -31,6 +32,7 @@ export function DashboardView({
   now,
   successToast,
   onPickCategory,
+  onCancelRequest,
 }: DashboardViewProps) {
   const stats = requestStats(requests, now);
   const todays = [...requests]
@@ -88,7 +90,13 @@ export function DashboardView({
       ) : (
         <div className="mt-3.5 flex flex-col gap-3">
           {todays.map((r) => (
-            <RequestRow key={r.id} request={r} staffById={staffById} now={now} />
+            <RequestRow
+              key={r.id}
+              request={r}
+              staffById={staffById}
+              now={now}
+              onCancel={r.status === "new" ? () => onCancelRequest(r.id) : undefined}
+            />
           ))}
         </div>
       )}

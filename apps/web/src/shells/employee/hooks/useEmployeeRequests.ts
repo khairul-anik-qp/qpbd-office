@@ -33,6 +33,16 @@ export function useEmployeeRequests() {
     setCreateForm(defaultCreateForm());
   }, []);
 
+  const cancelRequest = useCallback(async (id: string) => {
+    try {
+      const updated = await api.cancelRequest(id);
+      mergeRequest(updated);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not cancel request";
+      toast.error(msg);
+    }
+  }, []);
+
   const sendRequest = useCallback(async () => {
     if (!user || !createForm.type || sending) return;
 
@@ -88,5 +98,6 @@ export function useEmployeeRequests() {
     openCreate,
     closeCreate,
     sendRequest,
+    cancelRequest,
   };
 }
