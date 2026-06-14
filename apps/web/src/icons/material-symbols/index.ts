@@ -25,6 +25,8 @@ import { Add } from "./add.js";
 import { Check } from "./check.js";
 import { Favorite } from "./favorite.js";
 import { FavoriteFill } from "./favorite-fill.js";
+import { CalendarToday } from "./calendar_today.js";
+import { ArrowDropDown } from "./arrow_drop_down.js";
 
 export const ICON_REGISTRY = {
   "local_cafe": LocalCafe,
@@ -54,6 +56,8 @@ export const ICON_REGISTRY = {
   "check": Check,
   "favorite": Favorite,
   "favorite-fill": FavoriteFill,
+  "calendar_today": CalendarToday,
+  "arrow_drop_down": ArrowDropDown,
 } as const;
 
 export type IconName = keyof typeof ICON_REGISTRY;

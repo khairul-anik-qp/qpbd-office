@@ -9,7 +9,7 @@ function statusParam(filter: AllFilter) {
   return filter === "all" ? undefined : filter;
 }
 
-export function useAllRequestsPage(filter: AllFilter) {
+export function useAllRequestsPage(filter: AllFilter, dateFrom?: string) {
   const [items, setItems] = useState<Request[]>([]);
   const [total, setTotal] = useState(0);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -33,6 +33,7 @@ export function useAllRequestsPage(filter: AllFilter) {
           limit: REQUESTS_PAGE_SIZE,
           cursor,
           status: statusParam(filter),
+          dateFrom,
         });
         if (requestId !== requestIdRef.current) return;
 
@@ -50,7 +51,7 @@ export function useAllRequestsPage(filter: AllFilter) {
         }
       }
     },
-    [filter],
+    [filter, dateFrom],
   );
 
   useEffect(() => {

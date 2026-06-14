@@ -21,6 +21,7 @@ const ICON_NAMES = [
   "priority_high", "location_on", "sticky_note_2", "notifications", "person",
   "groups", "send", "arrow_back", "close", "inbox", "install_desktop",
   "more_horiz", "add", "check", "favorite", "favorite-fill",
+  "calendar_today", "arrow_drop_down",
 ];
 
 const pascal = (s) => s.replace(/(^|[_-])([a-z0-9])/g, (_, __, c) => c.toUpperCase());

@@ -1,5 +1,6 @@
 import { Type } from "class-transformer";
 import {
+  IsDateString,
   IsIn,
   IsInt,
   IsNotEmpty,
@@ -39,6 +40,10 @@ export class ListRequestsQueryDto {
   @IsOptional()
   @IsIn(REQUEST_STATUSES)
   status?: RequestStatus;
+
+  @IsOptional()
+  @IsDateString()
+  dateFrom?: string;
 }
 
 export class CreateRequestDto {
