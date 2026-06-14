@@ -92,7 +92,7 @@ export function AppHeader() {
             {user?.role === "admin" ? (
               <DropdownMenuItem asChild>
                 <Link to="/admin" className="flex items-center justify-between gap-2">
-                  <span>Signup approvals</span>
+                  <span>Admin</span>
                   {showPendingBadge ? (
                     <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[11px] font-medium leading-none text-white">
                       {pendingSignupCount > 9 ? "9+" : pendingSignupCount}
