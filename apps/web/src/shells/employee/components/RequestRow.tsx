@@ -4,6 +4,7 @@ import { Icon, TypeIcon } from "@/components/Icon";
 import {
   assigneeLine,
   buildProgressSteps,
+  doneInText,
   requestMeta,
   statusChip,
 } from "../lib/employee-request";
@@ -22,6 +23,7 @@ export function RequestRow({ request, staffById, now, onCancel }: RequestRowProp
   const assign = assigneeLine(request, staffById);
   const steps = buildProgressSteps(request);
   const meta = requestMeta(request, now);
+  const doneIn = doneInText(request);
 
   return (
     <article className="flex gap-3.5 rounded-[10px] border border-border bg-card p-4">
@@ -49,6 +51,9 @@ export function RequestRow({ request, staffById, now, onCancel }: RequestRowProp
           </span>
         </div>
         <ProgressTracker steps={steps} />
+        {doneIn && (
+          <p className="text-xs font-medium text-green-700">{doneIn}</p>
+        )}
         {onCancel && (
           <div className="flex justify-end">
             <button

@@ -95,6 +95,12 @@ export const api = {
     });
   },
 
+  getResponseTimeStats(): Promise<
+    { staffId: string; nameEn: string; avgMinutes: number; completedCount: number }[]
+  > {
+    return request("/admin/stats/response-time");
+  },
+
   listStaff(): Promise<User[]> {
     return request("/staff");
   },
