@@ -5,7 +5,7 @@ import { AllRequestsView } from "./components/AllRequestsView";
 import { useAllRequestsPage } from "./hooks/useAllRequestsPage";
 import { useNow } from "./hooks/useNow";
 import { useEmployeeData } from "./hooks/useEmployeeData";
-import { type AllFilter } from "./lib/employee-request";
+import { type AllFilter, type DateFilter, dateFilterFrom } from "./lib/employee-request";
 import { api } from "@/lib/api";
 import { mergeRequest } from "@/lib/request-sync";
 
@@ -13,6 +13,7 @@ export default function AllRequestsShell() {
   const now = useNow();
   const { staffById } = useEmployeeData();
   const [allFilter, setAllFilter] = useState<AllFilter>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const {
     items,
     total,
@@ -22,7 +23,7 @@ export default function AllRequestsShell() {
     error,
     loadMore,
     retry,
-  } = useAllRequestsPage(allFilter);
+  } = useAllRequestsPage(allFilter, dateFilterFrom(dateFilter));
 
   const cancelRequest = useCallback(async (id: string) => {
     try {
@@ -45,6 +46,8 @@ export default function AllRequestsShell() {
           now={now}
           filter={allFilter}
           onFilterChange={setAllFilter}
+          dateFilter={dateFilter}
+          onDateFilterChange={setDateFilter}
           loading={loading}
           loadingMore={loadingMore}
           error={error}

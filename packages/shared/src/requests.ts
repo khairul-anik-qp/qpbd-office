@@ -8,6 +8,8 @@ export interface ListRequestsParams {
   limit?: number;
   cursor?: string;
   status?: RequestStatus;
+  /** ISO datetime string — only return requests created at or after this timestamp. */
+  dateFrom?: string;
 }
 
 /** Paginated GET /requests response (when `limit` is provided). */

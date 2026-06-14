@@ -2,7 +2,13 @@ import { Link } from "react-router-dom";
 import type { Request, User } from "@office/shared";
 import { Icon } from "@/components/Icon";
 import { Button } from "@/components/ui/button";
-import { ALL_FILTERS, dayLabel, type AllFilter } from "../lib/employee-request";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ALL_FILTERS, DATE_FILTERS, dayLabel, type AllFilter, type DateFilter } from "../lib/employee-request";
 import { RequestRow } from "./RequestRow";
 
 interface AllRequestsViewProps {
@@ -12,6 +18,8 @@ interface AllRequestsViewProps {
   now: number;
   filter: AllFilter;
   onFilterChange: (f: AllFilter) => void;
+  dateFilter: DateFilter;
+  onDateFilterChange: (f: DateFilter) => void;
   loading: boolean;
   loadingMore: boolean;
   error: boolean;
@@ -28,6 +36,8 @@ export function AllRequestsView({
   now,
   filter,
   onFilterChange,
+  dateFilter,
+  onDateFilterChange,
   loading,
   loadingMore,
   error,
@@ -66,24 +76,49 @@ export function AllRequestsView({
               <p className="text-[13px] leading-4 text-muted-gray">{subtitle}</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {ALL_FILTERS.map((f) => {
-              const active = filter === f.key;
-              return (
+          <div className="flex items-center gap-2">
+            <div className="flex flex-wrap gap-2 flex-1">
+              {ALL_FILTERS.map((f) => {
+                const active = filter === f.key;
+                return (
+                  <button
+                    key={f.key}
+                    type="button"
+                    onClick={() => onFilterChange(f.key)}
+                    className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[13px] leading-4 transition-colors ${
+                      active
+                        ? "border-electric bg-selected-soft text-electric"
+                        : "border-border bg-card text-lead"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                );
+              })}
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
                 <button
-                  key={f.key}
                   type="button"
-                  onClick={() => onFilterChange(f.key)}
-                  className={`inline-flex items-center rounded-full border px-3.5 py-1.5 text-[13px] leading-4 transition-colors ${
-                    active
-                      ? "border-electric bg-selected-soft text-electric"
-                      : "border-border bg-card text-lead"
-                  }`}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-card px-3.5 py-1.5 text-[13px] leading-4 text-lead transition-colors hover:bg-surface"
                 >
-                  {f.label}
+                  <Icon name="calendar_today" className="size-[14px]" />
+                  {DATE_FILTERS.find((f) => f.key === dateFilter)?.label ?? "All time"}
+                  <Icon name="arrow_drop_down" className="size-[14px] text-muted-gray" />
                 </button>
-              );
-            })}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[140px]">
+                {DATE_FILTERS.map((f) => (
+                  <DropdownMenuItem
+                    key={f.key}
+                    onSelect={() => onDateFilterChange(f.key)}
+                    className={dateFilter === f.key ? "text-electric" : ""}
+                  >
+                    {f.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </article>
 

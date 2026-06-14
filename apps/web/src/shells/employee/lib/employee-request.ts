@@ -10,6 +10,30 @@ export const ALL_FILTERS: { key: AllFilter; label: string }[] = [
   { key: "done", label: "Completed" },
 ];
 
+export type DateFilter = "all" | "today" | "week" | "month";
+
+export const DATE_FILTERS: { key: DateFilter; label: string }[] = [
+  { key: "all", label: "All time" },
+  { key: "today", label: "Today" },
+  { key: "week", label: "This week" },
+  { key: "month", label: "This month" },
+];
+
+export function dateFilterFrom(filter: DateFilter): string | undefined {
+  if (filter === "all") return undefined;
+  const now = new Date();
+  if (filter === "today") {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+  }
+  if (filter === "week") {
+    const day = now.getDay();
+    const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((day + 6) % 7));
+    return monday.toISOString();
+  }
+  // month
+  return new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+}
+
 export const AVAILABILITY_LABELS: Record<
   Availability,
   { en: string; soft: string; color: string }

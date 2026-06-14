@@ -82,7 +82,12 @@ export class RequestsService {
     query: ListRequestsQueryDto,
   ): Promise<ListRequestsPage> {
     const limit = query.limit!;
-    const baseWhere = this.buildVisibilityWhere(user, query.status);
+    const dateFilter = query.dateFrom
+      ? ({ createdAt: { gte: new Date(query.dateFrom) } } satisfies Prisma.RequestWhereInput)
+      : null;
+    const baseWhere: Prisma.RequestWhereInput = dateFilter
+      ? { AND: [this.buildVisibilityWhere(user, query.status), dateFilter] }
+      : this.buildVisibilityWhere(user, query.status);
     const cursorFilter = this.buildCursorFilter(query.cursor);
     const where: Prisma.RequestWhereInput = {
       AND: [baseWhere, ...(cursorFilter ? [cursorFilter] : [])],
