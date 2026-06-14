@@ -95,6 +95,7 @@ model Request {
   loc           String
   assigneeId    String?
   status        RequestStatus @default(new)
+  isFavorite    Boolean       @default(false)
   forwardedById String?
   acceptedById  String?
   acceptedAt    DateTime?

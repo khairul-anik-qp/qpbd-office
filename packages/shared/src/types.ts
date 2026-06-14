@@ -44,6 +44,7 @@ export interface Request {
   /** assignee first name — denormalized for employee UI */
   assigneeName?: string | null;
   status: RequestStatus;
+  isFavorite: boolean;
   /** staff id who forwarded */
   forwardedBy?: string | null;
   acceptedBy?: string | null;

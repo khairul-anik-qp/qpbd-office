@@ -19,9 +19,11 @@ export default function EmployeeShell() {
     setCreateForm,
     successToast,
     openCreate,
+    openRepeat,
     closeCreate,
     sendRequest,
     cancelRequest,
+    toggleFavorite,
   } = useEmployeeRequests();
 
   const createOpen = createForm.type !== null;
@@ -45,6 +47,8 @@ export default function EmployeeShell() {
           successToast={successToast}
           onPickCategory={openCreate}
           onCancelRequest={cancelRequest}
+          onToggleFavorite={toggleFavorite}
+          onRepeat={openRepeat}
         />
       </main>
 

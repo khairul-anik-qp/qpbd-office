@@ -15,9 +15,10 @@ interface RequestRowProps {
   staffById: Map<string, User>;
   now: number;
   onCancel?: () => void;
+  onToggleFavorite?: () => void;
 }
 
-export function RequestRow({ request, staffById, now, onCancel }: RequestRowProps) {
+export function RequestRow({ request, staffById, now, onCancel, onToggleFavorite }: RequestRowProps) {
   const def = TYPES[request.type];
   const chip = statusChip(request.status);
   const assign = assigneeLine(request, staffById);
@@ -43,12 +44,25 @@ export function RequestRow({ request, staffById, now, onCancel }: RequestRowProp
               {assign.text}
             </p>
           </div>
-          <span
-            className="inline-flex shrink-0 items-center rounded px-2.5 py-0.5 text-xs font-medium leading-4"
-            style={{ backgroundColor: chip.bg, color: chip.fg }}
-          >
-            {chip.text}
-          </span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {onToggleFavorite && (
+              <button
+                type="button"
+                onClick={onToggleFavorite}
+                aria-label={request.isFavorite ? "Remove from favorites" : "Mark as favorite"}
+                title={request.isFavorite ? "Remove from favorites" : "Mark as favorite"}
+                className={`flex items-center justify-center rounded p-0.5 transition-colors ${request.isFavorite ? "text-red-400 hover:text-muted-gray" : "text-muted-gray hover:text-red-400"}`}
+              >
+                <Icon name={request.isFavorite ? "favorite-fill" : "favorite"} className="size-[18px]" />
+              </button>
+            )}
+            <span
+              className="inline-flex items-center rounded px-2.5 py-0.5 text-xs font-medium leading-4"
+              style={{ backgroundColor: chip.bg, color: chip.fg }}
+            >
+              {chip.text}
+            </span>
+          </div>
         </div>
         <ProgressTracker steps={steps} />
         {doneIn && (

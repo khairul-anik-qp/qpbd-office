@@ -18,6 +18,7 @@ export function toRequest(record: RequestRecord): Request {
       ? staffFirstName(record.assignee.nameEn)
       : null,
     status: record.status,
+    isFavorite: record.isFavorite,
     forwardedBy: record.forwardedById,
     acceptedBy: record.acceptedById,
     acceptedAt: record.acceptedAt?.toISOString() ?? null,

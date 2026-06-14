@@ -327,6 +327,19 @@ export class RequestsService {
     return request;
   }
 
+  async toggleFavorite(user: User, id: string, value: boolean): Promise<Request> {
+    const record = await this.getRecordOrThrow(id);
+    if (record.requesterId !== user.id) {
+      throw new ForbiddenException("You can only favorite your own requests");
+    }
+    const updated = await this.prisma.request.update({
+      where: { id },
+      data: { isFavorite: value },
+      include: REQUEST_INCLUDE,
+    });
+    return toRequest(updated);
+  }
+
   private assertStaff(user: User) {
     if (user.role !== "staff" || user.status !== "active") {
       throw new ForbiddenException("Staff only");
