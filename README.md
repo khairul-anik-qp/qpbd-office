@@ -112,10 +112,12 @@ qpbd-office/
 ├── packages/
 │   └── shared/              # @office/shared — types + constants
 │       └── src/
-│           ├── types.ts         # User, Request, enums
-│           ├── constants.ts     # LOCATIONS, TYPES, colors
-│           ├── assignment.ts    # routing helpers
-│           └── icons.ts         # icon name maps
+│           ├── types.ts              # User, Request, enums (incl. `discarded` status)
+│           ├── constants.ts          # LOCATIONS, TYPES, colors
+│           ├── assignment.ts         # routing helpers
+│           ├── operating-window.ts   # staff shift window (08:00–22:00, Asia/Dhaka)
+│           ├── requests.ts           # request helpers
+│           └── icons.ts              # icon name maps
 ├── docker-compose.yml         # dev Postgres only
 ├── docker-compose.prod.yml    # Postgres + API + Caddy
 └── .env.example
@@ -178,15 +180,19 @@ stateDiagram-v2
     new --> progress: Staff accepts
     progress --> progress: Staff forwards to colleague
     progress --> done: Staff completes
+    new --> discarded: Midnight auto-discard
+    progress --> discarded: Midnight auto-discard
     done --> [*]
+    discarded --> [*]
 ```
 
 1. **Create** — employee picks type, location, urgency, note → assignment router picks a staff member → push + SSE broadcast.
 2. **Accept** — staff claims the request → status becomes `progress`.
 3. **Forward** — staff reassigns to another helper → push to target, SSE update.
 4. **Complete** — staff marks done → employee sees completion in real time.
+5. **Auto-discard** — open requests (`new` / `progress`) from the current operating window (08:00–22:00 office-local) are automatically set to `discarded` at midnight. Controlled by `REQUEST_AUTO_DISCARD_ENABLED`.
 
-Staff UI tabs map to status: **New** (`new`), **In progress** (`progress`), **Done** (`done`).
+Staff UI tabs map to status: **New** (`new`), **In progress** (`progress`), **Done** (`done`). Staff see only requests from the current day's operating window.
 
 ---
 
@@ -200,7 +206,7 @@ All REST endpoints are prefixed with `/api`. SSE lives at `/sse/events` (no `/ap
 | `POST` | `/api/auth/google` | Exchange Google token → JWT |
 | `POST` | `/api/auth/register` | `{ role: "employee" \| "staff" }` → pending |
 | `GET` | `/api/auth/me` | Current user |
-| `GET` | `/api/requests` | List requests (filtered by role) |
+| `GET` | `/api/requests` | List requests (filtered by role); optional `?cursor=`, `?limit=` (1–50), `?status=` |
 | `POST` | `/api/requests` | Create request |
 | `POST` | `/api/requests/:id/accept` | Accept / claim |
 | `POST` | `/api/requests/:id/forward` | `{ targetStaffId }` |
@@ -208,12 +214,12 @@ All REST endpoints are prefixed with `/api`. SSE lives at `/sse/events` (no `/ap
 | `GET` | `/api/staff` | Staff roster |
 | `PATCH` | `/api/staff/availability` | `{ status: available \| busy \| away }` |
 | `GET` | `/api/admin/pending` | Approval queue |
-| `POST` | `/api/admin/approve/:userId` | Approve (+ Bangla name for staff) |
+| `POST` | `/api/admin/approve/:userId` | Approve user |
 | `POST` | `/api/admin/reject/:userId` | Reject |
 | `POST` | `/api/push/subscribe` | Save Web Push subscription |
 | `GET` | `/sse/events` | SSE stream (JWT via query) |
 
-**SSE event types:** `request.created`, `request.updated`, `availability.changed`, `user.approved`
+**SSE event types:** `request.created`, `request.updated`, `availability.changed`, `user.registered`, `user.approved`, `user.rejected`
 
 ---
 
@@ -256,6 +262,7 @@ Copy `.env.example` to `.env`. Key groups:
 | Push | `VAPID_*`, `FCM_PROJECT_ID`, `GOOGLE_APPLICATION_CREDENTIALS`, `VITE_VAPID_PUBLIC_KEY` | Optional locally; needed for real push |
 | Reminders | `STAFF_REMINDER_INTERVAL_MINUTES`, `STAFF_REMINDER_ENABLED` | Cron nudges for stale New-tab items |
 | Availability | `STAFF_BUSY_AUTO_RESET_MINUTES`, `STAFF_BUSY_AUTO_RESET_ENABLED` | Auto-reset forgotten `busy` status (default 20 min) |
+| Request expiry | `REQUEST_AUTO_DISCARD_ENABLED`, `OFFICE_TIMEZONE` | Auto-discard open requests at midnight (default timezone: `Asia/Dhaka`) |
 | App | `APP_URL`, `APP_DOMAIN`, `API_PORT`, `VITE_GOOGLE_CLIENT_ID` | `APP_URL` must be HTTPS in production |
 | Email | `RESEND_API_KEY`, `RESEND_FROM` | Optional approval notification |
 

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -56,5 +57,14 @@ export class RequestsController {
   @Post(":id/cancel")
   cancel(@CurrentUser() user: User, @Param("id") id: string): Promise<Request> {
     return this.requests.cancel(user, id);
+  }
+
+  @Patch(":id/favorite")
+  setFavorite(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+    @Body("value") value: boolean,
+  ): Promise<Request> {
+    return this.requests.toggleFavorite(user, id, value);
   }
 }

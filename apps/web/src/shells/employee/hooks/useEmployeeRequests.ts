@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import type { RequestType } from "@office/shared";
+import type { Request, RequestType } from "@office/shared";
 import { LOCATIONS, staffFirstName } from "@office/shared";
 import { api } from "@/lib/api";
 import { mergeRequest } from "@/lib/request-sync";
@@ -29,6 +29,16 @@ export function useEmployeeRequests() {
     });
   }, []);
 
+  const openRepeat = useCallback((request: Request) => {
+    setCreateForm({
+      type: request.type,
+      loc: request.loc,
+      urg: request.urg,
+      note: request.note,
+      assignee: null,
+    });
+  }, []);
+
   const closeCreate = useCallback(() => {
     setCreateForm(defaultCreateForm());
   }, []);
@@ -39,6 +49,16 @@ export function useEmployeeRequests() {
       mergeRequest(updated);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Could not cancel request";
+      toast.error(msg);
+    }
+  }, []);
+
+  const toggleFavorite = useCallback(async (id: string, value: boolean) => {
+    try {
+      const updated = await api.setFavorite(id, value);
+      mergeRequest(updated);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Could not update favorite";
       toast.error(msg);
     }
   }, []);
@@ -96,8 +116,10 @@ export function useEmployeeRequests() {
     successToast,
     sending,
     openCreate,
+    openRepeat,
     closeCreate,
     sendRequest,
     cancelRequest,
+    toggleFavorite,
   };
 }

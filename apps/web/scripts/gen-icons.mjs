@@ -20,10 +20,10 @@ const ICON_NAMES = [
   "check_circle", "forward", "forward_to_inbox", "task_alt", "schedule",
   "priority_high", "location_on", "sticky_note_2", "notifications", "person",
   "groups", "send", "arrow_back", "close", "inbox", "install_desktop",
-  "more_horiz", "add", "check",
+  "more_horiz", "add", "check", "favorite", "favorite-fill",
 ];
 
-const pascal = (s) => s.replace(/(^|_)([a-z0-9])/g, (_, __, c) => c.toUpperCase());
+const pascal = (s) => s.replace(/(^|[_-])([a-z0-9])/g, (_, __, c) => c.toUpperCase());
 
 mkdirSync(OUT, { recursive: true });
 

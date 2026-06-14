@@ -23,6 +23,8 @@ import { InstallDesktop } from "./install_desktop.js";
 import { MoreHoriz } from "./more_horiz.js";
 import { Add } from "./add.js";
 import { Check } from "./check.js";
+import { Favorite } from "./favorite.js";
+import { FavoriteFill } from "./favorite-fill.js";
 
 export const ICON_REGISTRY = {
   "local_cafe": LocalCafe,
@@ -50,6 +52,8 @@ export const ICON_REGISTRY = {
   "more_horiz": MoreHoriz,
   "add": Add,
   "check": Check,
+  "favorite": Favorite,
+  "favorite-fill": FavoriteFill,
 } as const;
 
 export type IconName = keyof typeof ICON_REGISTRY;

@@ -143,6 +143,13 @@ export const api = {
     return request(`/requests/${id}/cancel`, { method: "POST" });
   },
 
+  setFavorite(id: string, value: boolean): Promise<Request> {
+    return request(`/requests/${id}/favorite`, {
+      method: "PATCH",
+      body: JSON.stringify({ value }),
+    });
+  },
+
   setAvailability(status: Availability): Promise<User> {
     return request("/staff/availability", {
       method: "PATCH",
