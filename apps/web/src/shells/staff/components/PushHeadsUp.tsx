@@ -7,10 +7,12 @@ interface PushHeadsUpProps {
   request: Request;
   onView: () => void;
   onAccept: () => void;
+  onDismiss: () => void;
 }
 
-export function PushHeadsUp({ request, onView, onAccept }: PushHeadsUpProps) {
+export function PushHeadsUp({ request, onView, onAccept, onDismiss }: PushHeadsUpProps) {
   const ty = TYPES[request.type];
+  const isUrgent = request.urg === "urgent";
 
   return (
     <div
@@ -28,7 +30,19 @@ export function PushHeadsUp({ request, onView, onAccept }: PushHeadsUpProps) {
           />
         </span>
         <span className="text-[13px] font-medium leading-4 text-lead">QuestionPro Office</span>
-        <span className="ml-auto text-xs leading-4 text-muted-gray">এখন · now</span>
+        {isUrgent ? (
+          <span className="rounded-md bg-danger-soft px-1.5 py-0.5 text-[11px] font-medium leading-4 text-danger">
+            জরুরি · Urgent
+          </span>
+        ) : null}
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="ml-auto rounded p-0.5 text-muted-gray hover:text-lead"
+          aria-label="Dismiss notification"
+        >
+          <Icon name="close" className="size-4" aria-hidden />
+        </button>
       </div>
 
       <div className="mt-2.5 flex items-start gap-[11px]">

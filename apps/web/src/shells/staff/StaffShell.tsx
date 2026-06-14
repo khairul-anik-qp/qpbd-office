@@ -1,4 +1,8 @@
+import { useCallback } from "react";
 import { useNow } from "@/shells/employee/hooks/useNow";
+import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { useTabBadge } from "@/hooks/useTabBadge";
+import { useWakeLock } from "@/hooks/useWakeLock";
 import { StaffHeader } from "./components/StaffHeader";
 import { AvailabilityControl } from "./components/AvailabilityControl";
 import { StaffTabs } from "./components/StaffTabs";
@@ -6,10 +10,13 @@ import { StaffRequestCard } from "./components/StaffRequestCard";
 import { ForwardBanner } from "./components/ForwardBanner";
 import { EmptyTabState } from "./components/EmptyTabState";
 import { PushHeadsUp } from "./components/PushHeadsUp";
+import { PushSetupBanner } from "./components/PushSetupBanner";
+import { unlockStaffAudio } from "./lib/chime";
 import { useStaffRequests } from "./hooks/useStaffRequests";
 
 export default function StaffShell() {
   const now = useNow();
+  const { canInstall, promptInstall } = useInstallPrompt();
   const {
     user,
     staffById,
@@ -29,19 +36,31 @@ export default function StaffShell() {
     cancelForward,
     forward,
     complete,
+    dismissNotif,
     viewNotif,
   } = useStaffRequests();
+
+  useWakeLock(!!user);
+  useTabBadge(counts.new);
+
+  const onShellInteraction = useCallback(() => {
+    unlockStaffAudio();
+  }, []);
 
   if (!user) return null;
 
   const availabilityFor = (id: string) => staffById.get(id)?.availability ?? "away";
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div
+      className="flex min-h-screen flex-col bg-background"
+      onPointerDown={onShellInteraction}
+    >
       <div
         className={`relative mx-auto flex w-full max-w-md flex-1 flex-col bg-background ${shake ? "animate-shake" : ""}`}
       >
-        <StaffHeader user={user} />
+        <StaffHeader user={user} canInstall={canInstall} onInstall={() => void promptInstall()} />
+        <PushSetupBanner />
         <AvailabilityControl value={myAvailability} onChange={setAvailability} />
         <StaffTabs active={phoneTab} counts={counts} onChange={changeTab} />
 
@@ -76,6 +95,7 @@ export default function StaffShell() {
             request={activeNotif}
             onView={viewNotif}
             onAccept={() => accept(activeNotif.id)}
+            onDismiss={dismissNotif}
           />
         ) : null}
       </div>

@@ -1,6 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import type { UserRole } from "@office/shared";
 import { useAuth } from "@/context/AuthContext";
+import { PushSetupProvider } from "@/context/PushSetupContext";
 import { homeForUser, userCanAccess } from "@/lib/auth-routes";
 import { RealtimeSync } from "@/components/RealtimeSync";
 
@@ -34,10 +35,15 @@ export function RequireAuth({
     return <Navigate to={homeForUser(user)} replace />;
   }
 
+  const pushEnabled =
+    requireActive &&
+    user.status === "active" &&
+    (user.role === "staff" || user.role === "admin");
+
   return (
-    <>
+    <PushSetupProvider enabled={pushEnabled}>
       {requireActive && user.status === "active" ? <RealtimeSync /> : null}
       {children}
-    </>
+    </PushSetupProvider>
   );
 }

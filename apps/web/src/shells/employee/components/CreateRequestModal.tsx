@@ -104,7 +104,7 @@ export function CreateRequestModal({
                       }
                       onChange({ assignee: member.id });
                     }}
-                    className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
+                    className="grow inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
                     style={{
                       borderColor: form.assignee === member.id ? "#1B87E6" : "#D8D8D8",
                       background: form.assignee === member.id ? "#EEF6FE" : "#fff",

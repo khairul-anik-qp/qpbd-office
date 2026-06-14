@@ -98,6 +98,7 @@ export class PushService implements OnModuleInit {
     await this.sendToStaff(staffIds, {
       type: "request.new",
       requestId: request.id,
+      urg: request.urg,
       titleBn: "নতুন অনুরোধ",
       titleEn: "New request",
       bodyBn: `${ty.bn} — ${request.loc}`,
@@ -110,6 +111,7 @@ export class PushService implements OnModuleInit {
     await this.sendToStaff([staffId], {
       type: "request.forwarded",
       requestId: request.id,
+      urg: request.urg,
       titleBn: "ফরওয়ার্ড করা অনুরোধ",
       titleEn: "Forwarded request",
       bodyBn: `${ty.bn} — ${request.loc}`,

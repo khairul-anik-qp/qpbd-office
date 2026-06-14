@@ -1,12 +1,36 @@
 /// <reference lib="webworker" />
 import { clientsClaim } from "workbox-core";
 import { precacheAndRoute } from "workbox-precaching";
-import type { PushPayload } from "@office/shared";
+import type { PushBridgeMessage, PushPayload } from "@office/shared";
 
 declare const self: ServiceWorkerGlobalScope;
 
 precacheAndRoute(self.__WB_MANIFEST);
 clientsClaim();
+
+const INSTANT_PUSH_TYPES = new Set<PushPayload["type"]>([
+  "request.new",
+  "request.forwarded",
+]);
+
+function notifyOpenClients(payload: PushPayload) {
+  if (!INSTANT_PUSH_TYPES.has(payload.type)) return;
+
+  const message: PushBridgeMessage = {
+    type: "office-push",
+    pushType: payload.type,
+    requestId: payload.requestId,
+    urg: payload.urg,
+  };
+
+  void self.clients
+    .matchAll({ type: "window", includeUncontrolled: true })
+    .then((clients) => {
+      for (const client of clients) {
+        client.postMessage(message);
+      }
+    });
+}
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;
@@ -26,19 +50,30 @@ self.addEventListener("push", (event) => {
       ? `${payload.bodyBn} · ${payload.bodyEn ?? ""}`
       : undefined);
 
+  const isUrgent = payload.urg === "urgent";
+  const isInstant = INSTANT_PUSH_TYPES.has(payload.type);
+
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon: "/icons/icon.svg",
-      badge: "/icons/icon.svg",
-      tag:
-        payload.type === "request.reminder"
-          ? "reminder"
-          : payload.type === "signup.pending"
-            ? "signup-pending"
-            : payload.requestId,
-      data: payload,
-    }),
+    (async () => {
+      notifyOpenClients(payload);
+
+      await self.registration.showNotification(title, {
+        body,
+        icon: "/icons/icon.svg",
+        badge: "/icons/icon.svg",
+        silent: false,
+        vibrate: isInstant ? (isUrgent ? [300, 100, 300, 100, 300] : [200, 100, 200]) : undefined,
+        requireInteraction: isUrgent,
+        tag:
+          payload.type === "request.reminder"
+            ? "reminder"
+            : payload.type === "signup.pending"
+              ? "signup-pending"
+              : payload.requestId,
+        renotify: true,
+        data: payload,
+      } as NotificationOptions);
+    })(),
   );
 });
 

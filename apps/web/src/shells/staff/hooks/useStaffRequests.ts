@@ -9,6 +9,7 @@ import {
   subscribeAvailability,
 } from "@/lib/availability-store";
 import { loadGlobalRequests, subscribeRequests } from "@/lib/request-store";
+import { replaceAllRequests } from "@/lib/request-sync";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { useNow } from "@/shells/employee/hooks/useNow";
@@ -23,7 +24,6 @@ import {
   isInStaffShift,
 } from "../lib/staff-format";
 
-const NOTIF_MS = 7000;
 const FORWARD_TOAST_MS = 3800;
 
 function mergeAvailability(list: User[]): User[] {
@@ -49,7 +49,7 @@ export function useStaffRequests() {
   const [shake, setShake] = useState(false);
 
   const seenIdsRef = useRef<Set<string>>(new Set(loadGlobalRequests().map((r) => r.id)));
-  const notifTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activeNotifIdRef = useRef<string | null>(null);
   const forwardTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shakeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -61,13 +61,11 @@ export function useStaffRequests() {
   }, [staff, staffId]);
 
   const showNotification = useCallback((req: Request) => {
+    if (activeNotifIdRef.current === req.id) return;
+    activeNotifIdRef.current = req.id;
     setActiveNotif(req);
     setShake(true);
-    playNewRequestChime();
-    if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
-    notifTimerRef.current = setTimeout(() => {
-      setActiveNotif((cur) => (cur?.id === req.id ? null : cur));
-    }, NOTIF_MS);
+    playNewRequestChime(req.urg);
     if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
     shakeTimerRef.current = setTimeout(() => setShake(false), 650);
   }, []);
@@ -124,12 +122,41 @@ export function useStaffRequests() {
 
   useEffect(
     () => () => {
-      if (notifTimerRef.current) clearTimeout(notifTimerRef.current);
       if (forwardTimerRef.current) clearTimeout(forwardTimerRef.current);
       if (shakeTimerRef.current) clearTimeout(shakeTimerRef.current);
     },
     [],
   );
+
+  const refreshFromServer = useCallback(async () => {
+    const list = await api.listRequests();
+    replaceAllRequests(list);
+    return list;
+  }, []);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.hidden) return;
+      void refreshFromServer().catch(() => undefined);
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refreshFromServer]);
+
+  useEffect(() => {
+    if (!staffId) return;
+
+    const handler = (event: MessageEvent) => {
+      const data = event.data as { type?: string; pushType?: string; requestId?: string };
+      if (data?.type !== "office-push") return;
+      if (data.pushType !== "request.new" && data.pushType !== "request.forwarded") return;
+
+      void refreshFromServer().catch(() => undefined);
+    };
+
+    navigator.serviceWorker?.addEventListener("message", handler);
+    return () => navigator.serviceWorker?.removeEventListener("message", handler);
+  }, [staffId, refreshFromServer]);
 
   const setAvailability = useCallback(
     (status: Availability) => {
@@ -154,6 +181,7 @@ export function useStaffRequests() {
       void api
         .acceptRequest(id)
         .then(() => {
+          if (activeNotifIdRef.current === id) activeNotifIdRef.current = null;
           setActiveNotif((n) => (n?.id === id ? null : n));
           setForwardingId(null);
         })
@@ -183,6 +211,7 @@ export function useStaffRequests() {
         .forwardRequest(id, { targetStaffId: targetId })
         .then(() => {
           setForwardingId(null);
+          if (activeNotifIdRef.current === id) activeNotifIdRef.current = null;
           setActiveNotif((n) => (n?.id === id ? null : n));
           if (target) {
             const toastMsg: ForwardToast = {
@@ -216,9 +245,13 @@ export function useStaffRequests() {
     [staffId],
   );
 
-  const dismissNotif = useCallback(() => setActiveNotif(null), []);
+  const dismissNotif = useCallback(() => {
+    activeNotifIdRef.current = null;
+    setActiveNotif(null);
+  }, []);
 
   const viewNotif = useCallback(() => {
+    activeNotifIdRef.current = null;
     setActiveNotif(null);
     setPhoneTab("new");
   }, []);
