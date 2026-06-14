@@ -44,8 +44,8 @@ export function CreateRequestModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-5 p-6 [&>button]:hidden">
-        <DialogHeader className="flex-row items-center gap-3 space-y-0">
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 [&>button]:hidden">
+        <DialogHeader className="shrink-0 flex-row items-center gap-3 space-y-0 px-6 pt-6">
           {type && def && (
             <span
               className="flex size-11 shrink-0 items-center justify-center rounded-[10px]"
@@ -65,7 +65,7 @@ export function CreateRequestModal({
           </button>
         </DialogHeader>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-6 py-5">
           <div className="flex flex-col gap-2">
             <Label htmlFor="loc">Where should it go?</Label>
             <select
@@ -205,7 +205,7 @@ export function CreateRequestModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="shrink-0 gap-2 border-t border-border px-6 py-4 sm:gap-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>

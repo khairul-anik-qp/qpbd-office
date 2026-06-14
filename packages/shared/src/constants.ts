@@ -28,7 +28,7 @@ export interface RequestTypeDef {
   bg: string;
   /** tile foreground */
   fg: string;
-  /** quick-option chips ("bn · en" tokens), toggled into the note */
+  /** quick-option chips (Bangla tokens), toggled into the note */
   options: string[];
 }
 
@@ -41,13 +41,13 @@ export const TYPES: Record<RequestType, RequestTypeDef> = {
     bg: "#FEEFB3",
     fg: "#9F6000",
     options: [
-      "ব্ল্যাক কফি · Black coffee",
-      "দুধ কফি · White coffee",
-      "দুধ চা · Milk tea",
-      "গ্রিন টি · Green tea",
-      "আদা চা · Ginger tea",
-      "কম চিনি · Low sugar",
-      "চিনি ছাড়া · No sugar",
+      "ব্ল্যাক কফি",
+      "দুধ কফি",
+      "দুধ চা",
+      "গ্রিন টি",
+      "আদা চা",
+      "কম চিনি",
+      "চিনি ছাড়া",
     ],
   },
   snack: {
@@ -57,11 +57,11 @@ export const TYPES: Record<RequestType, RequestTypeDef> = {
     bg: "#FFE2C2",
     fg: "#B5651D",
     options: [
-      "ঝাল বেশি · Extra spicy",
-      "কম ঝাল · Mild",
-      "পেঁয়াজ বেশি · Extra onion",
-      "লেবু · With lemon",
-      "সরিষার তেল · Mustard oil",
+      "ঝাল বেশি",
+      "কম ঝাল",
+      "পেঁয়াজ বেশি",
+      "লেবু",
+      "সরিষার তেল",
     ],
   },
   supply: {
@@ -71,12 +71,12 @@ export const TYPES: Record<RequestType, RequestTypeDef> = {
     bg: "#CCF0FF",
     fg: "#215694",
     options: [
-      "A4 পেপার · A4 paper",
-      "কলম · Pens",
-      "মার্কার · Whiteboard marker",
-      "স্ট্যাপলার · Stapler",
-      "ফাইল · File folder",
-      "স্টিকি নোট · Sticky notes",
+      "A4 পেপার",
+      "কলম",
+      "মার্কার",
+      "স্ট্যাপলার",
+      "ফাইল",
+      "স্টিকি নোট",
     ],
   },
   printer: {
@@ -86,11 +86,11 @@ export const TYPES: Record<RequestType, RequestTypeDef> = {
     bg: "#E1F0FB",
     fg: "#1B87E6",
     options: [
-      "কাগজ আটকে গেছে · Paper jam",
-      "টোনার শেষ · Out of toner",
-      "প্রিন্ট হচ্ছে না · Not printing",
-      "স্ক্যান দরকার · Need to scan",
-      "কানেক্ট হচ্ছে না · Won’t connect",
+      "কাগজ আটকে গেছে",
+      "টোনার শেষ",
+      "প্রিন্ট হচ্ছে না",
+      "স্ক্যান দরকার",
+      "কানেক্ট হচ্ছে না",
     ],
   },
   help: {
@@ -100,11 +100,11 @@ export const TYPES: Record<RequestType, RequestTypeDef> = {
     bg: "#DFF2BF",
     fg: "#227700",
     options: [
-      "এসি · AC",
-      "লাইট / ফ্যান · Light / Fan",
-      "ফার্নিচার সরানো · Move furniture",
-      "পরিষ্কার · Cleaning",
-      "দরজা / তালা · Door / Lock",
+      "এসি",
+      "লাইট / ফ্যান",
+      "ফার্নিচার সরানো",
+      "পরিষ্কার",
+      "দরজা / তালা",
     ],
   },
   other: {

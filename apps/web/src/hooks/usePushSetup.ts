@@ -96,7 +96,7 @@ export function usePushSetup(enabled: boolean) {
   const { needRefresh, updateServiceWorker } = useRegisterSW({
     onRegisteredSW(_url, registration) {
       registrationRef.current = registration ?? null;
-      if (registration) void subscribePush(registration, Notification.permission === "default");
+      if (registration) void subscribePush(registration, false);
     },
   });
 
