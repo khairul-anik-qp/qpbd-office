@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { RequestStatus, type Prisma } from "@prisma/client";
+import { Prisma, RequestStatus } from "@prisma/client";
 import type { CreateRequestResponse, ListRequestsPage, Request, User } from "@office/shared";
 import {
   getStaffOperatingWindow,
@@ -65,9 +65,13 @@ export class RequestsService {
 
   private async listAllForUser(user: User): Promise<Request[]> {
     const where = this.buildVisibilityWhere(user);
+    // Staff: urgent requests surface first, then oldest-first within tier
+    const orderBy = isEmployeeRole(user.role)
+      ? ({ createdAt: "desc" } as const)
+      : [{ urg: Prisma.SortOrder.desc }, { createdAt: Prisma.SortOrder.asc }];
     const records = await this.prisma.request.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy,
       include: REQUEST_INCLUDE,
     });
     return records.map(toRequest);

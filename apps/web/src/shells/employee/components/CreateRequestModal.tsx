@@ -138,7 +138,10 @@ export function CreateRequestModal({
           </div>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium leading-none">How soon?</span>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium leading-none">How soon?</span>
+              <span className="text-xs text-muted-gray">Urgent requests appear first in the queue</span>
+            </div>
             <div className="flex gap-2">
               <UrgencyButton
                 active={form.urg === "normal"}
