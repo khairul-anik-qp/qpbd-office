@@ -1,5 +1,5 @@
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 interface GoogleSignInButtonProps {
@@ -44,8 +44,6 @@ export function GoogleSignInButton({
   onError,
   className,
 }: GoogleSignInButtonProps) {
-  const googleHostRef = useRef<HTMLDivElement>(null);
-
   const handleCredential = useCallback(
     (res: CredentialResponse) => {
       if (res.credential) onSuccess(res.credential);
@@ -53,18 +51,29 @@ export function GoogleSignInButton({
     [onSuccess],
   );
 
-  const handleClick = useCallback(() => {
-    const googleBtn = googleHostRef.current?.querySelector('[role="button"]');
-    if (googleBtn instanceof HTMLElement) googleBtn.click();
-  }, []);
-
   return (
-    <div className="relative w-full max-w-[380px]">
+    <div className={cn("relative h-12 w-full max-w-[380px]", className)}>
+      {/* Branded chrome — decorative; clicks pass through to the GIS iframe layer. */}
       <div
-        ref={googleHostRef}
-        className="pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0"
         aria-hidden
-        tabIndex={-1}
+        className={cn(
+          "pointer-events-none absolute inset-0 z-0 inline-flex items-center justify-center gap-3 rounded-full px-6",
+          "border border-[#dadce0] bg-white text-[15px] font-medium leading-none text-[#3c4043]",
+          "shadow-[0_1px_2px_rgba(60,64,67,0.08)]",
+          disabled && "opacity-60",
+        )}
+      >
+        <GoogleLogo />
+        Sign in with Google
+      </div>
+
+      {/* GIS renders an iframe (no [role=button] in parent DOM) — overlay receives clicks. */}
+      <div
+        className={cn(
+          "absolute inset-0 z-10 overflow-hidden rounded-full opacity-[0.001]",
+          disabled && "pointer-events-none",
+        )}
+        aria-label="Sign in with Google"
       >
         <GoogleLogin
           onSuccess={handleCredential}
@@ -72,27 +81,9 @@ export function GoogleSignInButton({
           text="signin_with"
           shape="pill"
           size="large"
+          width={380}
         />
       </div>
-
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={handleClick}
-        className={cn(
-          "inline-flex h-12 w-full max-w-[380px] items-center justify-center gap-3 rounded-full px-6",
-          "border border-[#dadce0] bg-white text-[15px] font-medium leading-none text-[#3c4043]",
-          "shadow-[0_1px_2px_rgba(60,64,67,0.08)] transition-[background-color,border-color,box-shadow,transform]",
-          "hover:border-[#c6dafc] hover:bg-[#f8faff] hover:shadow-[0_2px_8px_rgba(66,133,244,0.18)]",
-          "active:scale-[0.99] active:bg-[#eef3fd]",
-          "focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-[#4285F4]/35",
-          "disabled:pointer-events-none disabled:opacity-60",
-          className,
-        )}
-      >
-        <GoogleLogo />
-        Sign in with Google
-      </button>
     </div>
   );
 }

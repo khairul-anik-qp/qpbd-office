@@ -1,0 +1,38 @@
+# Fly.io — single-origin API + PWA (see apps/api/Dockerfile).
+# Postgres: attach Managed Postgres with `fly mpg attach` (see README / deploy notes).
+app = "qpbd-office"
+primary_region = "sin"
+
+[build]
+  dockerfile = "apps/api/Dockerfile"
+  # Public client values baked into the Vite build (not secrets):
+  #   fly deploy --build-arg VITE_GOOGLE_CLIENT_ID=... --build-arg VITE_VAPID_PUBLIC_KEY=...
+
+[env]
+  NODE_ENV = "production"
+  API_PORT = "3000"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+  [[http_service.checks]]
+    grace_period = "60s"
+    interval = "15s"
+    method = "GET"
+    timeout = "5s"
+    path = "/api/health"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

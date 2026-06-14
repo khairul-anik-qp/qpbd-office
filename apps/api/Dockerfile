@@ -10,9 +10,15 @@ COPY apps/api ./apps/api
 COPY apps/web ./apps/web
 RUN pnpm install --frozen-lockfile || pnpm install
 RUN pnpm --filter @office/shared build
+RUN pnpm --filter @office/api exec prisma generate
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_VAPID_PUBLIC_KEY
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
+ENV VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY
 RUN pnpm --filter @office/web build
 RUN pnpm --filter @office/api build
-RUN pnpm --filter @office/api --prod deploy /app
+RUN pnpm --filter @office/api --prod deploy /app --legacy
+RUN cd /app && ./node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
 RUN cp -r apps/web/dist /app/public
 
 FROM base AS runtime
@@ -23,4 +29,4 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/public ./public
 COPY --from=build /repo/apps/api/prisma ./prisma
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma && node dist/main.js"]
