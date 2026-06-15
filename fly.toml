@@ -12,6 +12,10 @@ primary_region = "sin"
   NODE_ENV = "production"
   API_PORT = "3000"
 
+[deploy]
+  # Run migrations before traffic switches so the app can bind :3000 immediately.
+  release_command = "./node_modules/.bin/prisma migrate deploy --schema=./prisma/schema.prisma"
+
 [http_service]
   internal_port = 3000
   force_https = true
