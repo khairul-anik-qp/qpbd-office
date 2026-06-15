@@ -91,13 +91,14 @@ qpbd-office/
 │   │       ├── auth/          # Google OAuth, JWT, registration
 │   │       ├── users/         # user CRUD + mappers
 │   │       ├── admin/         # pending queue, approve/reject
-│   │       ├── staff/         # staff list, availability
+│   │       ├── staff/         # staff list, availability, auto-reset
 │   │       ├── requests/      # create, accept, forward, complete
 │   │       ├── assignment/    # routing logic (who gets push)
 │   │       ├── sse/           # Server-Sent Events broadcast
 │   │       ├── push/          # Web Push / FCM subscriptions
 │   │       ├── reminders/     # cron for stale "New" tab items
-│   │       └── email/         # optional Resend notifications
+│   │       ├── email/         # optional Resend notifications
+│   │       └── prisma/        # PrismaService + PrismaModule (DB access layer)
 │   └── web/                 # @office/web — Vite + React 19 PWA
 │       └── src/
 │           ├── shells/        # role-specific UIs (lazy-loaded)
@@ -106,8 +107,11 @@ qpbd-office/
 │           │   └── admin/       # approval queue
 │           ├── pages/           # login, register, pending
 │           ├── components/      # shared UI (shadcn + Icon)
-│           ├── context/         # AuthContext
-│           ├── hooks/           # useSSE, usePushNotifications, …
+│           ├── context/         # AuthContext, PushSetupContext
+│           ├── hooks/           # useSSE, usePushSetup, useInstallPrompt,
+│           │                    # useTabBadge, useWakeLock, useAdminPendingSync,
+│           │                    # usePendingSignupCount, usePendingSignupList
+│           ├── dev/             # development-only pages (TokensPage)
 │           └── lib/             # api client, request store, auth routes
 ├── packages/
 │   └── shared/              # @office/shared — types + constants
@@ -117,7 +121,11 @@ qpbd-office/
 │           ├── assignment.ts         # routing helpers
 │           ├── operating-window.ts   # staff shift window (08:00–22:00, Asia/Dhaka)
 │           ├── requests.ts           # request helpers
-│           └── icons.ts              # icon name maps
+│           ├── icons.ts              # icon name maps
+│           ├── auth.ts               # auth-related shared helpers
+│           ├── push.ts               # push subscription helpers
+│           ├── staff-count.ts        # staff availability counting
+│           └── users.ts              # user-related helpers
 ├── docker-compose.yml         # dev Postgres only
 ├── docker-compose.prod.yml    # Postgres + API + Caddy
 └── .env.example
@@ -240,6 +248,7 @@ Run from the repo root unless noted.
 | `pnpm test:shared` | Run shared package unit tests |
 | `pnpm docker:prod` | Build and start production stack |
 | `pnpm docker:prod:down` | Stop production stack |
+| `pnpm dev:kill` | Kill processes on ports 3000, 5173, 5174 (also runs as `predev`) |
 
 **Per-package scripts** (examples):
 
