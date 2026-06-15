@@ -38,6 +38,7 @@ export function CreateRequestModal({
 }: CreateRequestModalProps) {
   const type = form.type;
   const def = type ? TYPES[type] : null;
+  const title = type === "other" ? "New request" : (def?.en ?? "New request");
   const tokens = noteTokens(form.note);
   const options = def?.options ?? [];
   const noteReady = form.note.trim().length > 0;
@@ -54,7 +55,7 @@ export function CreateRequestModal({
               <TypeIcon type={type} className="size-[26px]" />
             </span>
           )}
-          <DialogTitle className="text-lg font-medium leading-8">New request</DialogTitle>
+          <DialogTitle className="text-lg font-medium leading-8">{title}</DialogTitle>
           <button
             type="button"
             onClick={() => onOpenChange(false)}

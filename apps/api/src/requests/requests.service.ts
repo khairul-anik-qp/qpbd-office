@@ -9,7 +9,7 @@ import { ConfigService } from "@nestjs/config";
 import { Prisma, RequestStatus } from "@prisma/client";
 import type { CreateRequestResponse, ListRequestsPage, Request, User } from "@office/shared";
 import {
-  getStaffOperatingWindow,
+  getOfficeCalendarDayBounds,
   isEmployeeRole,
   isVisibleToStaff,
   OFFICE_TIMEZONE,
@@ -40,9 +40,9 @@ export class RequestsService {
     return this.config.get<string>("OFFICE_TIMEZONE") ?? OFFICE_TIMEZONE;
   }
 
-  private staffOperatingWindowWhere(): Prisma.RequestWhereInput {
-    const { start, end } = getStaffOperatingWindow(new Date(), this.officeTimezone);
-    return { createdAt: { gte: start, lte: end } };
+  private staffTodayWhere(): Prisma.RequestWhereInput {
+    const { start, end } = getOfficeCalendarDayBounds(new Date(), this.officeTimezone);
+    return { createdAt: { gte: start, lt: end } };
   }
 
   private withStaffShift(
@@ -50,7 +50,7 @@ export class RequestsService {
     where: Prisma.RequestWhereInput,
   ): Prisma.RequestWhereInput {
     if (user.role !== "staff") return where;
-    return { AND: [this.staffOperatingWindowWhere(), where] };
+    return { AND: [this.staffTodayWhere(), where] };
   }
 
   async listForUser(

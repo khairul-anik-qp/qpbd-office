@@ -1,5 +1,5 @@
 import type { Request } from "./types.js";
-import { isInStaffOperatingWindow } from "./operating-window.js";
+import { isInOfficeCalendarDay } from "./operating-window.js";
 import { isVisibleToStaff } from "./requests.js";
 
 /** Count items in a staff member's New tab (plan §8). */
@@ -13,6 +13,6 @@ export function countNewForStaff(
     (r) =>
       r.status === "new" &&
       isVisibleToStaff(r, staffId) &&
-      isInStaffOperatingWindow(r.createdAt, now, timeZone),
+      isInOfficeCalendarDay(r.createdAt, now, timeZone),
   ).length;
 }

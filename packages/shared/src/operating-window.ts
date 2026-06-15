@@ -93,6 +93,29 @@ export function isInStaffOperatingWindow(
   return ts >= start.getTime() && ts <= end.getTime();
 }
 
+/** Inclusive calendar-day bounds [start, end) in office-local time. */
+export function getOfficeCalendarDayBounds(
+  now: Date = new Date(),
+  timeZone: string = OFFICE_TIMEZONE,
+): { start: Date; end: Date } {
+  const { year, month, day } = partsInZone(now, timeZone);
+  const start = zonedInstant(year, month, day, 0, 0, 0, 0, timeZone);
+  const next = addDays(year, month, day, 1);
+  const end = zonedInstant(next.year, next.month, next.day, 0, 0, 0, 0, timeZone);
+  return { start, end };
+}
+
+/** True when `createdAt` falls on the same office-local calendar day as `now`. */
+export function isInOfficeCalendarDay(
+  createdAt: string | number | Date,
+  now: Date = new Date(),
+  timeZone: string = OFFICE_TIMEZONE,
+): boolean {
+  const ts = new Date(createdAt).getTime();
+  const { start, end } = getOfficeCalendarDayBounds(now, timeZone);
+  return ts >= start.getTime() && ts < end.getTime();
+}
+
 /** True once the current staff operating day has passed (after 10 PM office-local). */
 export function hasStaffOperatingWindowEnded(
   now: Date = new Date(),

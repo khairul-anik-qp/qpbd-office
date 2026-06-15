@@ -1,7 +1,8 @@
 import type { Availability, Request, User } from "@office/shared";
 import {
   LOCATIONS,
-  isInStaffOperatingWindow,
+  isInOfficeCalendarDay,
+  OFFICE_TIMEZONE,
   isVisibleToStaff as sharedIsVisible,
   sortRequestsForTab,
   staffFirstName,
@@ -66,9 +67,9 @@ export function isVisibleToStaff(request: Request, staffId: string): boolean {
 export function isInStaffShift(
   request: Request,
   now: number,
-  timeZone?: string,
+  timeZone: string = OFFICE_TIMEZONE,
 ): boolean {
-  return isInStaffOperatingWindow(request.createdAt, new Date(now), timeZone);
+  return isInOfficeCalendarDay(request.createdAt, new Date(now), timeZone);
 }
 
 export function tabCount(

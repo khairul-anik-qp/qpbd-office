@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import {
   getStaffOperatingWindow,
   hasStaffOperatingWindowEnded,
+  isInOfficeCalendarDay,
   isInStaffOperatingWindow,
   OFFICE_TIMEZONE,
 } from "./operating-window.js";
@@ -51,6 +52,7 @@ describe("isInStaffOperatingWindow", () => {
       isInStaffOperatingWindow("2026-06-14T07:59:00+06:00", now, TZ),
       false,
     );
+
     assert.equal(
       isInStaffOperatingWindow("2026-06-14T22:01:00+06:00", now, TZ),
       false,
@@ -75,5 +77,31 @@ describe("hasStaffOperatingWindowEnded", () => {
     assert.equal(hasStaffOperatingWindowEnded(after, TZ), true);
     const earlyMorning = new Date("2026-06-15T07:00:00+06:00");
     assert.equal(hasStaffOperatingWindowEnded(earlyMorning, TZ), true);
+  });
+});
+
+describe("isInOfficeCalendarDay", () => {
+  const now = new Date("2026-06-15T10:30:00+06:00");
+
+  it("accepts requests created today in office-local time", () => {
+    assert.equal(
+      isInOfficeCalendarDay("2026-06-15T07:00:00+06:00", now, TZ),
+      true,
+    );
+    assert.equal(
+      isInOfficeCalendarDay("2026-06-15T23:30:00+06:00", now, TZ),
+      true,
+    );
+  });
+
+  it("rejects requests from previous calendar days", () => {
+    assert.equal(
+      isInOfficeCalendarDay("2026-06-14T22:00:00+06:00", now, TZ),
+      false,
+    );
+    assert.equal(
+      isInOfficeCalendarDay("2026-06-14T09:00:00+06:00", now, TZ),
+      false,
+    );
   });
 });

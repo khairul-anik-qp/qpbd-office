@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import type { Availability, Request, User } from "@office/shared";
-import { getClientTimeZone, staffFirstName } from "@office/shared";
+import { OFFICE_TIMEZONE, staffFirstName } from "@office/shared";
 import {
   applyStaffAvailabilityFromApi,
   notifyAvailability,
@@ -34,7 +34,7 @@ export function useStaffRequests() {
   const { user } = useAuth();
   const staffId = user?.id ?? "";
   const now = useNow(60_000);
-  const timeZone = useMemo(() => getClientTimeZone(), []);
+  const timeZone = OFFICE_TIMEZONE;
   const [searchParams] = useSearchParams();
 
   const [staff, setStaff] = useState<User[]>([]);
